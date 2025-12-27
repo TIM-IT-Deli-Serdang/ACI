@@ -19,25 +19,20 @@ License: For each use you must have a valid license purchased only from above li
     <meta charset="utf-8" />
     <meta name="description"
         content="
-            The most advanced Tailwind CSS & Bootstrap 5 Admin Theme with 40 unique prebuilt layouts on Themeforest trusted by 100,000 beginners and professionals. Multi-demo,
-            Dark Mode, RTL support and complete React, Angular, Vue, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js, Node.js, Flask, Symfony & Laravel versions.
-            Grab your copy now and get life-time updates for free.
+          Aplikasi ACI - Aksi Cepat Infrastruktur
         " />
     <meta name="keywords"
         content="
-            tailwind, tailwindcss, metronic, bootstrap, bootstrap 5, angular, VueJs, React, Asp.Net Core, Rails, Spring, Blazor, Django, Express.js,
-            Node.js, Flask, Symfony & Laravel starter kits, admin themes, web design, figma, web development, free templates,
-            free admin themes, bootstrap theme, bootstrap template, bootstrap dashboard, bootstrap dak mode, bootstrap button,
-            bootstrap datepicker, bootstrap timepicker, fullcalendar, datatables, flaticon
+            aci, jalan, infrastruktur, laporan, deli serdang
         " />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
     <meta property="og:title"
-        content="Metronic - The World's #1 Selling Tailwind CSS & Bootstrap Admin Template by KeenThemes" />
-    <meta property="og:url" content="https://keenthemes.com/metronic" />
-    <meta property="og:site_name" content="Metronic by Keenthemes" />
-    <link rel="canonical" href="http://preview.keenthemes.com?page=index" />
+        content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
+    <meta property="og:url" content="#" />
+    <meta property="og:site_name" content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
+    <link rel="canonical" href="#" />
     <link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
     <!--begin::Fonts(mandatory for all pages)-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
@@ -84,9 +79,9 @@ License: For each use you must have a valid license purchased only from above li
     <!--begin::loader-->
     <div class="page-loader flex-column">
         <img alt="Logo" class="theme-light-show max-h-50px"
-            src="{{ asset('assets/media/logos/keenthemes.svg') }}" />
+            src="{{ asset('assets/media/logos/android-chrome-192x192.png') }}" />
         <img alt="Logo" class="theme-dark-show max-h-50px"
-            src="{{ asset('assets/media/logos/keenthemes-dark.svg') }}" />
+            src="{{ asset('assets/media/logos/android-chrome-192x192.png') }}" />
         <div class="d-flex align-items-center mt-5">
             <span class="spinner-border text-primary" role="status"></span>
             <span class="text-muted fs-6 fw-semibold ms-5">Loading...</span>
@@ -109,24 +104,21 @@ License: For each use you must have a valid license purchased only from above li
                         <div class="d-flex flex-grow-1 flex-lg-grow-0">
                             <!--begin::Logo wrapper-->
                             <div class="d-flex align-items-center me-7" id="kt_app_header_logo_wrapper">
-                                <!--begin::Header toggle-->
-                                <button
-                                    class="d-lg-none btn btn-icon btn-flex btn-color-gray-600 btn-active-color-primary w-35px h-35px ms-n2 me-2"
+                                <button class="d-lg-none btn btn-icon btn-flex btn-color-gray-600 btn-active-color-primary w-35px h-35px ms-n2 me-2"
                                     id="kt_app_header_menu_toggle">
                                     <i class="ki-outline ki-abstract-14 fs-2"></i>
                                 </button>
-                                <!--end::Header toggle-->
-                                <!--begin::Logo-->
                                 <a href="?page=index" class="d-flex align-items-center me-lg-20 me-5">
-                                    <img alt="Logo" src="{{ asset('assets/media/logos/demo-35-small.svg') }}"
-                                        class="h-20px d-sm-none d-inline" />
-                                    <img alt="Logo" src="{{ asset('assets/media/logos/demo-35.svg') }}"
-                                        class="h-20px h-lg-25px theme-light-show d-none d-sm-inline" />
-                                    <img alt="Logo" src="{{ asset('assets/media/logos/demo-35-dark.png') }}"
-                                        class="h-20px h-lg-25px theme-dark-show d-none d-sm-inline" />
+                                    <img alt="Logo" src="{{ asset('assets/media/logos/logo-aci.png') }}"
+                                        class="h-40px d-sm-none d-inline" />
+                                    <img alt="Logo" src="{{ asset('assets/media/logos/logo-aci.png') }}"
+                                        class="h-40px h-lg-40px theme-light-show d-none d-sm-inline" />
+                                    <img alt="Logo" src="{{ asset('assets/media/logos/logo-aci.png') }}"
+                                        class="h-40px h-lg-40px theme-dark-show d-none d-sm-inline" />
+                            
+                                    <span class="fw-bold fs-3 text-gray-900 ms-2">Aplikasi ACI</span>
                                 </a>
-                                <!--end::Logo-->
-                            </div>
+                                </div>
                             <!--end::Logo wrapper-->
                             <!--begin::Menu wrapper-->
                             @include('backend.layout.menu')

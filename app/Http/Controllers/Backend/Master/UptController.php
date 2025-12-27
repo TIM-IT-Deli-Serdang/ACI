@@ -1,25 +1,22 @@
 <?php
-    
-namespace App\Http\Controllers\Backend\UserManagement;
 
+namespace App\Http\Controllers\Backend\Master;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
 
-class UserController extends Controller
+class UptController extends Controller
 {
-    
-    
-    /**
+     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
-        return view('backend.user_management.user.index');
+        return view('backend.master.upt.index');
     }
 
 
@@ -38,7 +35,7 @@ public function getData(Request $request)
         try {
             // forward parameter datatables (draw, start, length, search)
             $response = Http::withToken($token)
-                ->get($baseUrl . '/api/users/datatables', $request->all());
+                ->get($baseUrl . '/api/upt/datatables', $request->all());
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -67,7 +64,7 @@ public function getData(Request $request)
         if (!$response->ok()) {
             return response()->json([
                 'status' => false,
-                'message' => $response->json()['message'] ?? 'Gagal mengambil data User.'
+                'message' => $response->json()['message'] ?? 'Gagal mengambil data Laporan.'
             ], $response->status());
         }
 
@@ -93,7 +90,7 @@ public function getData(Request $request)
         try {
             // Forward semua input ke API. Jika butuh hanya beberapa field, filter di sini.
             $response = Http::withToken($token)
-                ->post($baseUrl . '/api/users', $request->all());
+                ->post($baseUrl . '/api/upt', $request->all());
         } catch (\Throwable $e) {
             // Gagal koneksi ke backend
             return response()->json([
@@ -124,7 +121,7 @@ public function getData(Request $request)
         if (!$response->ok()) {
             return response()->json([
                 'status' => false,
-                'message' => $response->json()['message'] ?? 'Gagal menyimpan data User.'
+                'message' => $response->json()['message'] ?? 'Gagal menyimpan data Laporan.'
             ], $response->status());
         }
 
@@ -147,7 +144,7 @@ public function getData(Request $request)
 
         try {
             $response = Http::withToken($token)
-                ->get($baseUrl . '/api/users/' . $id);
+                ->get($baseUrl . '/api/upt/' . $id);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -172,7 +169,7 @@ public function getData(Request $request)
         if (!$response->ok()) {
             return response()->json([
                 'status' => false,
-                'message' => $response->json()['message'] ?? 'Gagal mengambil data User.'
+                'message' => $response->json()['message'] ?? 'Gagal mengambil data.'
             ], $response->status());
         }
 
@@ -183,7 +180,7 @@ public function getData(Request $request)
         }
 
         // render view partial (blade) dan kirim sebagai html
-        $html = view('backend.user_management.user.show', ['data' => $data])->render();
+        $html = view('backend.master.upt.show', ['data' => $data])->render();
 
         return response()->json(['html' => $html], 200);
     }
@@ -200,7 +197,7 @@ public function getData(Request $request)
         }
 
         try {
-            $response = Http::withToken($token)->get($baseUrl . '/api/users/' . $id);
+            $response = Http::withToken($token)->get($baseUrl . '/api/upt/' . $id);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
         }
@@ -220,7 +217,7 @@ public function getData(Request $request)
         $data = $response->json();
         if (isset($data['data'])) $data = $data['data'];
 
-        $html = view('backend.user_management.user.edit', ['data' => $data])->render();
+        $html = view('backend.master.upt.edit', ['data' => $data])->render();
         return response()->json(['html' => $html], 200);
     }
 
@@ -237,7 +234,7 @@ public function getData(Request $request)
         try {
             // Jika butuh file upload, gunakan multipart/form-data. Berikut asumsinya form-data biasa.
             $response = Http::withToken($token)
-                ->put($baseUrl . '/api/users/' . $id, $request->all());
+                ->put($baseUrl . '/api/upt/' . $id, $request->all());
         } catch (\Throwable $e) {
             return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
         }
@@ -273,7 +270,7 @@ public function getData(Request $request)
         }
 
         try {
-            $response = Http::withToken($token)->delete($baseUrl . '/api/users/' . $id);
+            $response = Http::withToken($token)->delete($baseUrl . '/api/upt/' . $id);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
         }
@@ -296,47 +293,4 @@ public function getData(Request $request)
         // sukses -> teruskan response dari API (mis. message)
         return response()->json($response->json(), $response->status());
     }
-
-// Tambahkan function ini di dalam class UserController
-
-public function selectUpt(Request $request)
-{
-    $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
-    $token   = Session::get('auth_token');
-
-    if (!$token) {
-        return response()->json([], 401);
-    }
-
-    // Ambil parameter pencarian dari Select2 (biasanya dikirim sebagai 'term' atau 'q')
-    $search = $request->input('term') ?? $request->input('q');
-    
-    try {
-        $response = Http::withToken($token)->get($baseUrl . '/api/upt', [
-            'search'   => $search,
-            'per_page' => 50, // Ambil cukup banyak untuk dropdown
-            'page'     => 1
-        ]);
-
-        if ($response->ok()) {
-            $data = $response->json();
-            // API mengembalikan format: { data: [...], meta: ... }
-            // Kita perlu mapping untuk Select2: id & text
-            $upts = collect($data['data'])->map(function($item) {
-                return [
-                    'id'   => $item['id'],
-                    'text' => $item['nama_upt'] // Mapping nama_upt jadi text
-                ];
-            });
-
-            return response()->json($upts);
-        }
-    } catch (\Exception $e) {
-        return response()->json([], 500);
-    }
-
-    return response()->json([], 200);
-}
-    
-    
 }
