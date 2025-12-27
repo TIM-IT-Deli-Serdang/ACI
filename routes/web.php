@@ -3,8 +3,11 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Backend\Laporan\LaporanWargaController;
+use App\Http\Controllers\Backend\Laporan\RekapLaporanController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Backend\LogActivity\LogActivityController;
+use App\Http\Controllers\Backend\Master\KategoriLaporanController;
 use App\Http\Controllers\Backend\MyProfile\AccountController;
 use App\Http\Controllers\Backend\MyProfile\ProfileController;
 use App\Http\Controllers\Backend\MyProfile\ActivityController;
@@ -18,6 +21,7 @@ use App\Http\Controllers\Backend\Master\Wilayah\WilayahKabupatenController;
 use App\Http\Controllers\Backend\Master\Wilayah\WilayahKecamatanController;
 use App\Http\Controllers\Backend\Master\Wilayah\WilayahDesaController;
 use App\Http\Controllers\Backend\Master\SkpdController;
+use App\Http\Controllers\Backend\Master\UptController;
 use App\Http\Controllers\Backend\UserManagement\UserController;
 use App\Http\Controllers\Backend\UserManagement\RoleController;
 
@@ -29,12 +33,14 @@ use App\Http\Controllers\Frontend\BerandaController;
 
 
 
-Route::get('/', [BerandaController::class, 'index'])->name('beranda.index');
+// Route::get('/', [BerandaController::class, 'index'])->name('beranda.index');
 
 
 
 
-
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
@@ -81,10 +87,16 @@ Route::get('/master/wilayah-desa/data', [WilayahDesaController::class, 'getData'
 Route::prefix('master')->group(function () {
     Route::get('/skpd/data', [SkpdController::class, 'getData'])->name('skpd.data');
     Route::resource('/skpd', SkpdController::class)->names('skpd');
+    Route::get('/upt/data', [UptController::class, 'getData'])->name('upt.data');
+    Route::resource('/upt', UptController::class)->names('upt');
+    Route::get('/kategori/data', [KategoriLaporanController::class, 'getData'])->name('kategori.data');
+    Route::resource('/kategori', KategoriLaporanController::class)->names('kategori');
 });
 
 Route::prefix('user-management')->group(function () {
     Route::get('/user/data', [UserController::class, 'getData'])->name('user.data');
+    // 2. Select2 UPT (Harus DI ATAS Resource agar tidak dianggap sebagai ID)
+    Route::get('/user/select-upt', [UserController::class, 'selectUpt'])->name('user.select-upt');
     Route::resource('/user', UserController::class)->names('user');
 });
 
@@ -94,5 +106,23 @@ Route::prefix('user-management')->group(function () {
     Route::get('/role/select', [RoleController::class, 'select'])->name('role.select');
     Route::resource('/role', RoleController::class)->names('role');
 });
+
+Route::prefix('laporan')->group(function () {
+    Route::get('/laporan/data', [LaporanWargaController::class, 'getData'])->name('laporan.data');
+    Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
+    Route::resource('/laporan', LaporanWargaController::class)->names('laporan');
+});
+
+Route::prefix('rekap-laporan')->group(function () {
+    // Route untuk mengambil data JSON (Statistik + Tabel)
+    Route::get('/rekap/get-data', [RekapLaporanController::class, 'getRekapData'])->name('rekap.get-data');
+    
+    // Route untuk Export PDF
+    Route::get('/rekap/export', [RekapLaporanController::class, 'exportPdf'])->name('rekap.export');
+    
+    // Resource Route
+    Route::resource('/rekap', RekapLaporanController::class)->names('rekap');
+});
+
 });
 

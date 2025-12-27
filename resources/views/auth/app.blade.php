@@ -17,16 +17,22 @@ License: For each use you must have a valid license purchased only from above li
 
     <title>@yield('title')</title>
     <meta charset="utf-8" />
-    <meta name="description" content="Base Aplikasi Terbaik" />
-    <meta name="keywords" content="chimo, rizky, rizkychimo, bootstrap, bootstrap 5, Symfony & Laravel starter kits." />
+    <meta name="description"
+        content="
+          Aplikasi ACI - Aksi Cepat Infrastruktur
+        " />
+    <meta name="keywords"
+        content="
+            aci, jalan, infrastruktur, laporan, deli serdang
+        " />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
     <meta property="og:title"
-        content="Metronic - The World's #1 Selling Tailwind CSS & Bootstrap Admin Template by KeenThemes" />
-    <meta property="og:url" content="https://keenthemes.com/metronic" />
-    <meta property="og:site_name" content="Metronic by Keenthemes" />
-    <link rel="canonical" href="http://preview.keenthemes.comauthentication/layouts/overlay/sign-in.html" />
+        content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
+    <meta property="og:url" content="#" />
+    <meta property="og:site_name" content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
+    <link rel="canonical" href="#" />
     <link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
     <!--begin::Fonts(mandatory for all pages)-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
@@ -90,22 +96,20 @@ License: For each use you must have a valid license purchased only from above li
                 <div class="d-flex flex-column flex-center pb-0 pb-lg-10 p-10 w-100">
                     <!--begin::Image-->
                     <img class="theme-light-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20 "
-                        src="{{ asset('assets/media/auth/agency.png') }}" alt="" />
+                        src="{{ asset('assets/media/logos/logo-aci.png') }}" alt="" />
                     <img class="theme-dark-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20"
-                        src="{{ asset('assets/media/auth/agency-dark.png') }}" alt="" />
+                        src="{{ asset('assets/media/logos/logo-aci.png') }}" alt="" />
                     <!--end::Image-->
-                    <!--begin::Title-->
-                    <h1 class="text-gray-800 fs-2qx fw-bold text-center mb-7">Fast, Efficient and Productive</h1>
-                    <!--end::Title-->
-                    <!--begin::Text-->
-                    <div class="text-gray-600 fs-base text-center fw-semibold">In this kind of post,
-                        <a class="opacity-75-hover text-primary me-1">the blogger</a>introduces a person
-                        they’ve interviewed
-                        <br />and provides some background information about
-                        <a class="opacity-75-hover text-primary me-1">the interviewee</a>and their
-                        <br />work following this is a transcript of the interview.
+                    <h1 class="text-gray-800 fs-2qx fw-bold text-center mb-7">Aksi Cepat Infrastruktur</h1>
+                    <div class="text-gray-600 fs-base text-center fw-semibold">
+                        Mewujudkan percepatan pembangunan di
+                        <a href="#" class="opacity-75-hover text-primary me-1">Kabupaten Deli Serdang</a>
+                        melalui sistem kerja yang terintegrasi dan dinamis.
+                        <br />
+                        Kami berkomitmen menghadirkan solusi infrastruktur yang
+                        <a href="#" class="opacity-75-hover text-primary me-1">cepat, tepat,</a>
+                        dan berorientasi pada kemajuan nyata.
                     </div>
-                    <!--end::Text-->
                 </div>
                 <!--end::Content-->
             </div>

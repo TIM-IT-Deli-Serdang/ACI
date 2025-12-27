@@ -17,12 +17,51 @@
             </a>
         </div>
 
-        <div class="menu-item menu-here-bg me-0 me-lg-2 menu-hover-bg menu-hover-bg-warning">
-            <a class="menu-link px-4">
+         <!--begin:Menu item-->
+         <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start"
+         class="menu-item menu-lg-down-accordion menu-sub-lg-down-indention me-0 me-lg-2">
+         <!--begin:Menu link-->
+         <span class="menu-link py-3  {{ request()->routeIs('laporan.index','rekap.index') ? 'active ' : '' }}">
+             <span class="menu-title">Laporan</span>
+             <span class="menu-arrow d-lg-none">
+             </span>
+         </span>
+         <!--end:Menu link-->
+         <!--begin:Menu sub-->
+         <div class="menu-sub menu-sub-lg-down-accordion menu-sub-lg-dropdown px-lg-2 py-lg-4 w-lg-200px">
 
-                <span class="menu-title">Reports</span>
-            </a>
-        </div>
+         @can('laporan.list')
+             <!--begin:Menu item-->
+             <div class="menu-item {{ request()->routeIs('laporan.index') ? 'here show ' : '' }}">
+                 <!--begin:Menu link-->
+                 <a class="menu-link py-3 " href="{{ route('laporan.index') }}">
+                     <span class="menu-icon">
+                         <i class="ki-outline ki-rocket fs-2"></i>
+                     </span>
+                     <span class="menu-title">Laporan Masyarakat</span>
+                 </a>
+                 <!--end:Menu link-->
+             </div>
+             <!--end:Menu item-->
+         @endcan
+ @can('rekap.list')
+             <!--begin:Menu item-->
+             <div class="menu-item {{ request()->routeIs('rekap.index') ? 'here show ' : '' }}">
+                 <!--begin:Menu link-->
+                 <a class="menu-link py-3" href="{{ route('rekap.index') }}">
+                     <span class="menu-icon">
+                         <i class="ki-outline ki-code fs-2"></i>
+                     </span>
+                     <span class="menu-title">Rekap Laporan</span>
+                 </a>
+                 <!--end:Menu link-->
+             </div>
+             <!--end:Menu item-->
+             @endcan                
+         </div>
+         <!--end:Menu sub-->
+     </div>
+     <!--end:Menu item-->
         <!--begin:Menu item-->
         <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start"
             class="menu-item menu-lg-down-accordion menu-sub-lg-down-indention me-0 me-lg-2">
@@ -125,12 +164,7 @@
         <!--end:Menu item-->
 
 
-        <div class="menu-item menu-here-bg me-0 me-lg-2 menu-hover-bg menu-hover-bg-warning">
-            <a class="menu-link px-4">
 
-                <span class="menu-title">Configuration</span>
-            </a>
-        </div>
     </div>
     <!--end::Menu-->
 </div>

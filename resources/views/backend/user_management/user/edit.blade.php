@@ -11,6 +11,33 @@
                                 placeholder="Contoh: Kominfo" value="{{ $data['name'] ?? '-' }}"/>
                             <span class="text-danger error-text name_error_edit"></span>
                         </div>
+                        <div class="fv-row mb-7">
+                            <label class="required fw-semibold fs-7 mb-2">NIK</label>
+                            <input type="number" name="nik" class="form-control mb-3 mb-lg-0" 
+                                   placeholder="Contoh: 1207xxxx" 
+                                   value="{{ $data['nik'] ?? '' }}" />
+                            <span class="text-danger error-text nik_error_edit"></span>
+                        </div>
+                        
+                        <div class="fv-row mb-7">
+                            <label class="required fw-semibold fs-7 mb-2">Unit UPT</label>
+                            <select id="upt_id_edit" name="upt_id" class="form-select mb-3 mb-lg-0"
+                                    data-dropdown-parent="#Modal_Edit_Data" 
+                                    data-control="select2" 
+                                    data-placeholder="Pilih UPT">
+                                    
+                                    @if(!empty($data['upt']))
+                                        <option value="{{ $data['upt']['id'] }}" selected>
+                                            {{ $data['upt']['nama_upt'] }}
+                                        </option>
+                                    @elseif(!empty($data['upt_id']))
+                                         <option value="{{ $data['upt_id'] }}" selected>
+                                            UPT ID: {{ $data['upt_id'] }}
+                                        </option>
+                                    @endif
+                            </select>
+                            <span class="text-danger error-text upt_id_error_edit"></span>
+                        </div>
 
                         <div class="row">
                             <!-- Input group: Nama Brand -->
@@ -91,5 +118,23 @@
                         }
                     }
                 });
+            });
+        </script>
+        <script>
+            // Init Select2 untuk Edit
+            $('#upt_id_edit').select2({
+                dropdownParent: $("#Modal_Edit_Data"),
+                allowClear: true,
+                width: '100%',
+                ajax: {
+                    url: "{{ route('user.select-upt') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data) {
+                        return {
+                            results: data
+                        };
+                    }
+                }
             });
         </script>

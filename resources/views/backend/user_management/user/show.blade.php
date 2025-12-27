@@ -10,6 +10,19 @@
          value="{{ $data['roles'][0]['name'] ?? '-' }}" readonly/>
 </div>
 </div>
+<div class="row">
+    <div class="fv-row mb-5 col-6">
+        <label class="required fw-semibold fs-7 mb-2">NIK</label>
+        <input type="text" class="form-control form-control-solid border border-gray-300"
+             value="{{ $data['nik'] ?? '-' }}" readonly/>
+    </div>
+
+    <div class="fv-row mb-5 col-6">
+        <label class="required fw-semibold fs-7 mb-2">Unit UPT</label>
+        <input type="text" class="form-control form-control-solid border border-gray-300"
+             value="{{ $data['upt']['nama_upt'] ?? '-' }}" readonly/>
+    </div>
+</div>
 
 
 

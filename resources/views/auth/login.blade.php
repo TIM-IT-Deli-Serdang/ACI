@@ -8,11 +8,22 @@
             <div class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-400px">
 
                 <div class="d-flex flex-center flex-column flex-column-fluid mb-2">
-                    <img alt="Logo" class="theme-light-show h-40px h-lg-45px"
-                        src="{{ asset('assets/media/logos/keenthemes.svg') }}" />
-                    <img alt="Logo" class="theme-dark-show h-40px h-lg-45px"
-                        src="{{ asset('assets/media/logos/keenthemes-dark.svg') }}" />
-                </div>
+    
+                    <div class="theme-light-show d-flex align-items-center gap-4">
+                        <img alt="Logo SDA" class="h-40px h-lg-45px" 
+                             src="{{ asset('assets/media/logos/logo-sda.png') }}" />
+                        
+                        <img alt="Logo DS" class="h-40px h-lg-45px" 
+                             src="{{ asset('assets/media/logos/logo-ds.png') }}" />
+                    </div>
+                    <div class="theme-dark-show d-flex align-items-center gap-4">
+                        <img alt="Logo SDA" class="h-40px h-lg-45px" 
+                             src="{{ asset('assets/media/logos/logo-sda.png') }}" />
+                        
+                        <img alt="Logo DS" class="h-40px h-lg-45px" 
+                             src="{{ asset('assets/media/logos/logo-ds.png') }}" />
+                    </div>
+                    </div>
 
                 <div class="d-flex flex-center flex-column flex-column-fluid pb-15 pb-lg-20 my-12">
 
@@ -54,10 +65,10 @@
                 <div class="d-flex flex-stack">
                     <div class="me-10">
                         <span class="text-muted fw-semibold me-1">{{ date('Y') }}</span>
-                        <a class="text-gray-800 text-hover-primary">&copy; rizkychimo</a>
+                        <a class="text-gray-800 text-hover-primary">&copy; IT Deli Serdang</a>
                     </div>
                     <div class="d-flex fw-semibold text-muted fs-base gap-5">
-                        <span class="px-2">No version available</span>
+                        <span class="px-2">ALPHA VERSION</span>
                     </div>
                 </div>
 
