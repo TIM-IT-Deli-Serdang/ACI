@@ -109,7 +109,11 @@ Route::prefix('user-management')->group(function () {
 
 Route::prefix('laporan')->group(function () {
     Route::get('/laporan/data', [LaporanWargaController::class, 'getData'])->name('laporan.data');
-    Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
+// Halaman Form Validasi
+Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
+    
+// ACTION SUBMIT VALIDASI (Tambahkan ini)
+Route::post('/laporan/{id}/validation', [LaporanWargaController::class, 'processValidation'])->name('laporan.process-validation');
     Route::resource('/laporan', LaporanWargaController::class)->names('laporan');
 });
 
