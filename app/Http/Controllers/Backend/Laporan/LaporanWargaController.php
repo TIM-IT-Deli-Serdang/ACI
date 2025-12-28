@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Backend\Laporan;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
-use App\Http\Controllers\Controller;
 
 class LaporanWargaController extends Controller
 {
@@ -299,28 +299,148 @@ public function getData(Request $request)
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
 
-        if (!$token) {
-            return redirect()->route('login')->with('error', 'Sesi habis, silakan login kembali.');
+        if (!$token) return redirect()->route('login');
+
+        // ==========================================
+        // 1. REQUEST API: DATA LAPORAN
+        // ==========================================
+        try {
+            $respLaporan = Http::withToken($token)->get($baseUrl . '/api/laporan/' . $id);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Koneksi API terputus.');
+        }
+
+        if (!$respLaporan->ok()) {
+            return back()->with('error', 'Gagal mengambil data laporan.');
+        }
+        $dataLaporan = $respLaporan->json()['data'] ?? [];
+
+
+        // ==========================================
+        // 2. REQUEST API: CEK ROLE USER (PENGGANTI SPATIE)
+        // ==========================================
+        
+        // Ambil ID user dari Session (Data mentah saat login)
+        $sessionUser = Session::get('user');
+        
+        if (!$sessionUser) {
+            return redirect()->route('login')->with('error', 'Sesi habis.');
+        }
+
+        // Handle jika session user berbentuk object atau array
+        $userId = is_array($sessionUser) ? $sessionUser['id'] : $sessionUser->id;
+
+        // Tembak API User Detail untuk dapat Roles terbaru
+        $respUser = Http::withToken($token)->get($baseUrl . '/api/users/' . $userId);
+        
+        $roleNames = [];
+        
+        if ($respUser->ok()) {
+            $userData = $respUser->json()['data'] ?? [];
+            
+            // API mengembalikan roles dalam bentuk Array Object: 
+            // "roles": [ {"id": 1, "name": "Superadmin"}, ... ]
+            if (isset($userData['roles']) && is_array($userData['roles'])) {
+                // Kita ambil value 'name'-nya saja -> ['Superadmin', 'upt']
+                $roleNames = collect($userData['roles'])->pluck('name')->toArray();
+            }
+        }
+
+        // ==========================================
+        // 3. LOGIKA HAK AKSES (MANUAL CHECK)
+        // ==========================================
+        $isSuperAdmin = in_array('Superadmin', $roleNames);
+        $isSda        = in_array('sda', $roleNames);
+        $isUpt        = in_array('upt', $roleNames);
+
+        return view('backend.laporan.validation', [
+            'data'         => $dataLaporan,
+            'isSuperAdmin' => $isSuperAdmin,
+            'isSda'        => $isSda,
+            'isUpt'        => $isUpt
+        ]);
+    }
+
+    public function processValidation(Request $request, $id)
+    {
+        $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
+        $token   = Session::get('auth_token');
+        
+        if (!$token) return redirect()->route('login');
+
+        // 1. Ambil Input dari Form
+        $action = $request->action; // 'next' (terima) atau 'reject' (tolak)
+        $currentStatus = (int) $request->current_status;
+        $keterangan = $request->keterangan;
+
+        // 2. Siapkan Payload untuk API
+        $payload = [];
+        
+        // --- LOGIKA MAPPING STATUS & FIELD ---
+        if ($action === 'reject') {
+            // === KASUS MENOLAK (SEMUA STATUS -> 5) ===
+            $payload['status_laporan'] = 5;
+            
+            // Tentukan field keterangan tolak berdasarkan status saat ini
+            if ($currentStatus == 0) $payload['penerima_keterangan_tolak'] = $keterangan;
+            elseif ($currentStatus == 1) $payload['verif_keterangan_tolak'] = $keterangan;
+            elseif ($currentStatus == 2) $payload['penanganan_keterangan_tolak'] = $keterangan;
+            elseif ($currentStatus == 3) $payload['selesai_keterangan_tolak'] = $keterangan;
+
+        } else {
+            // === KASUS MENERIMA / LANJUT ===
+            
+            if ($currentStatus == 0) {
+                // 0 (Pengajuan) -> 1 (Diterima)
+                $payload['status_laporan'] = 1;
+                $payload['penerima_keterangan'] = $keterangan;
+            } 
+            elseif ($currentStatus == 1) {
+                // 1 (Diterima) -> 2 (Verifikasi)
+                $payload['status_laporan'] = 2;
+                $payload['verif_keterangan'] = $keterangan;
+                // Khusus status 1 -> 2 ada file upload
+            }
+            elseif ($currentStatus == 2) {
+                // 2 (Verifikasi) -> 3 (Penanganan)
+                $payload['status_laporan'] = 3;
+                $payload['penanganan_keterangan'] = $keterangan;
+            }
+            elseif ($currentStatus == 3) {
+                // 3 (Penanganan) -> 4 (Selesai)
+                $payload['status_laporan'] = 4;
+                $payload['selesai_keterangan'] = $keterangan;
+            }
         }
 
         try {
-            // Ambil detail data dari API (endpoint sama dengan show)
-            $response = Http::withToken($token)->get($baseUrl . '/api/laporan/' . $id);
+            // 3. Kirim Request ke API Universal
+            $http = Http::withToken($token);
+
+            // Jika ada file (Hanya pada Status 1 -> 2 dan Action Next)
+            if ($currentStatus == 1 && $action === 'next' && $request->hasFile('verif_file')) {
+                $file = $request->file('verif_file');
+                $http->attach(
+                    'verif_file', 
+                    file_get_contents($file), 
+                    $file->getClientOriginalName()
+                );
+            }
+
+            // Endpoint: /api/laporan/update-status/{id}
+            $response = $http->post($baseUrl . '/api/laporan/update-status/' . $id, $payload);
+
+            if ($response->successful()) {
+                // UBAH DISINI: Redirect kembali ke route validation (halaman ini lagi), bukan ke index
+                return redirect()->route('laporan.validation', $id)->with('success', 'Status laporan berhasil diperbarui.');
+            } else {
+                $msg = $response->json()['message'] ?? 'Gagal memproses validasi.';
+                return back()->with('error', $msg)->withInput();
+            }
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Tidak dapat menghubungi server.');
+            return back()->with('error', 'Terjadi kesalahan server: ' . $e->getMessage());
         }
-
-        if (!$response->ok()) {
-            return back()->with('error', 'Gagal mengambil data laporan.');
-        }
-
-        $data = $response->json();
-        if (isset($data['data'])) {
-            $data = $data['data'];
-        }
-
-        // Return ke view halaman validasi
-        return view('backend.laporan.validation', ['data' => $data]);
     }
 
 }

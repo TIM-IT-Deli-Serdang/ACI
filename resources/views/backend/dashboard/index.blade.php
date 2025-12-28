@@ -2,29 +2,35 @@
 @section('title', 'Dashboard')
 @section('content')
 
-    <div id="kt_app_toolbar" class="app-toolbar  d-flex flex-stack py-4 py-lg-8">
-        <div class="d-flex flex-grow-1 flex-stack flex-wrap gap-2 mb-n10" id="kt_toolbar">
-            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3 ">
-                <h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">
-                    Dashboard
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                    Dashboard Overview
                 </h1>
                 <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
-                    <li class="breadcrumb-item text-muted"><a class="text-muted text-hover-primary">Home</a></li>
-                    <li class="breadcrumb-item"><span class="bullet bg-gray-500 w-5px h-2px"></span></li>
+                    <li class="breadcrumb-item text-muted">Home</li>
+                    <li class="breadcrumb-item"><span class="bullet bg-gray-400 w-5px h-2px"></span></li>
                     <li class="breadcrumb-item text-muted">Dashboard</li>
-                    <li class="breadcrumb-item"><span class="bullet bg-gray-500 w-5px h-2px"></span></li>
-                    <li class="breadcrumb-item text-gray-900">Overview</li>
                 </ul>
-            </div>
-            <div class="d-flex align-items-center pt-4 pb-7 pt-lg-1 pb-lg-2">
-                <a href="#" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal"
-                    data-bs-target="#kt_modal_create_app" id="kt_toolbar_primary_button">
-                    Create </a>
             </div>
         </div>
     </div>
     <div id="kt_app_content" class="app-content flex-column-fluid">
-        <div class="row g-5 mb-10">
+        <div id="kt_app_content_container" class="app-container container-fluid">
+            
+            <div class="row g-5 g-xl-8 mb-5 mb-xl-10">
+                <div class="col-md-4 col-xl-3">
+                    <div class="card bg-primary hoverable card-xl-stretch mb-xl-8">
+                        <div class="card-body d-flex align-items-center pt-3 pb-0">
+                            <i class="ki-outline ki-abstract-26 text-white fs-3x ms-n1 me-3"></i>
+                            <div class="d-flex flex-column h-100">
+                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $totalLaporan ?? 0 }}</span>
+                                <span class="text-white opacity-75 fw-semibold fs-6">Total Laporan</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
     {{-- ===== Rekap Status ===== --}}
     <div class="col-12">
@@ -33,8 +39,17 @@
                 <div class="card-title">
                     <h3 class="fw-bold m-0">Data Laporan per Status</h3>
                 </div>
-                <div class="card-toolbar">
-                    <span class="badge badge-light-primary">Total: {{ $totalLaporan ?? 0 }}</span>
+
+                <div class="col-md-4 col-xl-3">
+                    <div class="card bg-info hoverable card-xl-stretch mb-xl-8">
+                        <div class="card-body d-flex align-items-center pt-3 pb-0">
+                            <i class="ki-outline ki-check-square text-white fs-3x ms-n1 me-3"></i>
+                            <div class="d-flex flex-column h-100">
+                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['diterima'] ?? 0 }}</span>
+                                <span class="text-white opacity-75 fw-semibold fs-6">Diterima Admin</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card-body pt-0">
@@ -100,8 +115,17 @@
                 <div class="card-title">
                     <h3 class="fw-bold m-0">Jumlah Laporan per Kecamatan</h3>
                 </div>
-                <div class="card-toolbar">
-                    <span class="text-muted">Urut terbesar</span>
+
+                <div class="col-md-4 col-xl-3">
+                    <div class="card bg-success hoverable card-xl-stretch mb-xl-8">
+                        <div class="card-body d-flex align-items-center pt-3 pb-0">
+                            <i class="ki-outline ki-like text-white fs-3x ms-n1 me-3"></i>
+                            <div class="d-flex flex-column h-100">
+                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['selesai'] ?? 0 }}</span>
+                                <span class="text-white opacity-75 fw-semibold fs-6">Selesai Dikerjakan</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card-body pt-0">
@@ -128,26 +152,68 @@
                         </table>
                         <div class="text-muted fs-8">Menampilkan Top 10 kecamatan.</div>
                     </div>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    {{-- ===== Grafik Count Kecamatan ===== --}}
-    <div class="col-12 col-lg-7">
-        <div class="card card-flush border border-gray-300 h-100">
-            <div class="card-header pt-5">
-                <div class="card-title">
-                    <h3 class="fw-bold m-0">Grafik Laporan per Kecamatan (Top 10)</h3>
                 </div>
             </div>
-            <div class="card-body pt-0">
-                <canvas id="chartKecamatan" height="120"></canvas>
+            <div class="row g-5 g-xl-8">
+                <div class="col-xl-5">
+                    <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
+                        <div class="card-header border-0 pt-5">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold fs-3 mb-1">Top Kecamatan</span>
+                                <span class="text-muted fw-semibold fs-7">Jumlah laporan tertinggi</span>
+                            </h3>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="table-responsive">
+                                <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                                    <thead>
+                                        <tr class="fw-bold text-muted">
+                                            <th class="min-w-150px">Kecamatan</th>
+                                            <th class="min-w-100px text-end">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if(!empty($kecamatanCounts))
+                                            @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
+                                                <tr>
+                                                    <td>
+                                                        {{-- FIX: Gunakan strip_tags untuk membersihkan HTML badge yang ikut dari API --}}
+                                                        <span class="text-dark fw-bold text-hover-primary d-block fs-6">
+                                                            {{ strip_tags($row['nama']) }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="badge badge-light-primary fs-7 fw-bold">{{ (int)$row['total'] }}</span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="2" class="text-center text-muted">Data tidak tersedia</td></tr>
+                                        @endif
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-7">
+                    <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
+                        <div class="card-header border-0 pt-5">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold fs-3 mb-1">Grafik Kecamatan (Top 10)</span>
+                                <span class="text-muted fw-semibold fs-7">Visualisasi data laporan</span>
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartKecamatan" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
-
-</div>
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -183,7 +249,10 @@
                         legend: { display: true }
                     },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
                     }
                 }
             });
