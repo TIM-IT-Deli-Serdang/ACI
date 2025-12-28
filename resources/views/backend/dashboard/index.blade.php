@@ -31,38 +31,64 @@
         <div class="card card-flush border border-gray-300">
             <div class="card-header pt-5">
                 <div class="card-title">
-                    <h3 class="fw-bold m-0">Rekap Laporan per Status</h3>
+                    <h3 class="fw-bold m-0">Data Laporan per Status</h3>
                 </div>
                 <div class="card-toolbar">
                     <span class="badge badge-light-primary">Total: {{ $totalLaporan ?? 0 }}</span>
                 </div>
             </div>
             <div class="card-body pt-0">
-                @php
-                    $labelMap = [
-                        'pengajuan' => 'Pengajuan',
-                        'diterima' => 'Diterima',
-                        'diverifikasi' => 'Diverifikasi',
-                        'dalam_penanganan' => 'Dalam Penanganan',
-                        'selesai' => 'Selesai',
-                        'ditolak' => 'Ditolak',
-                    ];
-                @endphp
+             @php
+    // urutan + label (biar rapi dan konsisten)
+    $statusOrder = [
+        'pengajuan' => 'Pengajuan',
+        'diterima' => 'Diterima',
+        'diverifikasi' => 'Diverifikasi',
+        'dalam penanganan' => 'Dalam Penanganan',
+        'selesai' => 'Selesai',
+        'ditolak' => 'Ditolak',
+    ];
 
-                @if(empty($rekapStatus))
-                    <div class="text-muted">Data status belum tersedia (cek koneksi API / endpoint rekap).</div>
-                @else
-                    <div class="row g-4">
-                        @foreach($rekapStatus as $key => $val)
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <div class="border rounded p-4 h-100">
-                                    <div class="text-muted fw-semibold">{{ $labelMap[$key] ?? $key }}</div>
-                                    <div class="fs-2 fw-bold mt-1">{{ (int)$val }}</div>
-                                </div>
-                            </div>
-                        @endforeach
+    // ikon + warna bebas (kamu bisa ubah kapan saja)
+    $statusMeta = [
+        'pengajuan' => ['icon' => 'bi-send', 'bg' => 'bg-primary'],
+        'diterima' => ['icon' => 'bi-check-circle', 'bg' => 'bg-success'],
+        'diverifikasi' => ['icon' => 'bi-shield-check', 'bg' => 'bg-info'],
+        'dalam penanganan' => ['icon' => 'bi-tools', 'bg' => 'bg-warning'],
+        'selesai' => ['icon' => 'bi-flag', 'bg' => 'bg-dark'],
+        'ditolak' => ['icon' => 'bi-x-circle', 'bg' => 'bg-danger'],
+    ];
+@endphp
+
+        @if(empty($rekapStatus))
+         <div class="text-muted">Data status belum tersedia (cek koneksi API / endpoint rekap).</div>
+        @else
+        <div class="row g-3">
+        @foreach($statusOrder as $key => $label)
+            @php
+                $val = (int)($rekapStatus[$key] ?? 0);
+                $meta = $statusMeta[$key] ?? ['icon' => 'bi-circle', 'bg' => 'bg-secondary'];
+            @endphp
+
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card card-flush border border-gray-300 h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center {{ $meta['bg'] }}"
+                             style="width:44px;height:44px;">
+                            <i class="bi {{ $meta['icon'] }}" style="font-size:18px;"></i>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="text-muted small">{{ $label }}</div>
+                            <div class="fw-bold fs-4">{{ $val }}</div>
+                        </div>
+                       </div>
+                  </div>
+                  </div>
+                     @endforeach
                     </div>
-                @endif
+                    @endif
+
             </div>
         </div>
     </div>
@@ -72,7 +98,7 @@
         <div class="card card-flush border border-gray-300 h-100">
             <div class="card-header pt-5">
                 <div class="card-title">
-                    <h3 class="fw-bold m-0">Count Laporan per Kecamatan</h3>
+                    <h3 class="fw-bold m-0">Jumlah Laporan per Kecamatan</h3>
                 </div>
                 <div class="card-toolbar">
                     <span class="text-muted">Urut terbesar</span>
@@ -91,12 +117,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
-                                    <tr>
-                                        <td class="fw-semibold">{{ $row['nama'] }}</td>
-                                        <td class="text-end fw-bold">{{ (int)$row['total'] }}</td>
-                                    </tr>
+                               @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
+                                <tr>
+                                <td class="fw-semibold">{{ strip_tags($row['nama']) }}</td>
+                                <td class="text-end fw-bold">{{ (int)$row['total'] }}</td>
+                                </tr>
                                 @endforeach
+
                             </tbody>
                         </table>
                         <div class="text-muted fs-8">Menampilkan Top 10 kecamatan.</div>
@@ -124,23 +151,30 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @php
+  $cleanChartLabels = collect($chartLabels ?? [])->map(fn($x) => strip_tags($x))->values();
+@endphp
+
     <script>
         (function(){
             const el = document.getElementById('chartKecamatan');
             if(!el) return;
 
-            const labels = @json($chartLabels ?? []);
+            const labels = @json($cleanChartLabels);
             const values = @json($chartValues ?? []);
+
 
             if(labels.length === 0) return;
 
             new Chart(el, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Jumlah Laporan',
-                        data: values
+                      label: 'Jumlah Laporan',
+                     data: values,
+                    tension: 0.35,
+                    fill: false
                     }]
                 },
                 options: {
@@ -156,8 +190,7 @@
         })();
     </script>
 @endpush
-
-        <div class="row gx-5 gx-xl-10 mb-xl-10">
+{{--       <div class="row gx-5 gx-xl-10 mb-xl-10">
     <!--begin::Col-->
     <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-10">
         
@@ -3390,6 +3423,7 @@
     <!--end::Col--> 
 </div>
     </div>
+    --}}
     @push('scripts')
       
     @endpush
