@@ -19,8 +19,8 @@
 
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-fluid">
-            
-            {{-- ===== ROW 2: DETAIL STATUS GRID ===== --}}
+
+            {{-- ===== ROW: REKAP STATUS ===== --}}
             <div class="row g-5 g-xl-8 mb-5 mb-xl-10">
                 <div class="col-12">
                     <div class="card card-flush border border-gray-300">
@@ -30,20 +30,22 @@
                             </div>
                         </div>
                         <div class="card-body pt-0">
-                             @php
+                            @php
+                                // ✅ sesuaikan dengan key swagger (umumnya pakai underscore)
                                 $statusOrder = [
                                     'pengajuan' => 'Pengajuan',
                                     'diterima' => 'Diterima',
                                     'diverifikasi' => 'Diverifikasi',
-                                    'dalam penanganan' => 'Dalam Penanganan',
+                                    'dalam_penanganan' => 'Dalam Penanganan',
                                     'selesai' => 'Selesai',
                                     'ditolak' => 'Ditolak',
                                 ];
+
                                 $statusMeta = [
                                     'pengajuan' => ['icon' => 'bi-send', 'bg' => 'bg-primary'],
                                     'diterima' => ['icon' => 'bi-check-circle', 'bg' => 'bg-success'],
                                     'diverifikasi' => ['icon' => 'bi-shield-check', 'bg' => 'bg-info'],
-                                    'dalam penanganan' => ['icon' => 'bi-tools', 'bg' => 'bg-warning'],
+                                    'dalam_penanganan' => ['icon' => 'bi-tools', 'bg' => 'bg-warning'],
                                     'selesai' => ['icon' => 'bi-flag', 'bg' => 'bg-dark'],
                                     'ditolak' => ['icon' => 'bi-x-circle', 'bg' => 'bg-danger'],
                                 ];
@@ -75,80 +77,43 @@
                                     @endforeach
                                 </div>
                             @endif
+
+                            <div class="mt-4 text-muted">
+                                Total Laporan: <span class="fw-bold text-dark">{{ (int)($totalLaporan ?? 0) }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- ===== ROW 2: DETAIL TABEL & CHART ===== --}}
+            {{-- ===== ROW: LIST TERBARU & CHART TANGGAL ===== --}}
             <div class="row g-5 g-xl-8">
-                {{-- Kolom Kiri: Tabel Top Kecamatan --}}
-                <div class="col-xl-5">
+
+            
+
+                {{-- Kanan: Chart Trend per Tanggal --}}
+                <div class="col-xl-12">
                     <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
                         <div class="card-header border-0 pt-5">
                             <h3 class="card-title align-items-start flex-column">
-                                <span class="card-label fw-bold fs-3 mb-1">Top Kecamatan</span>
-                                <span class="text-muted fw-semibold fs-7">Jumlah laporan tertinggi</span>
+                                <span class="card-label fw-bold fs-3 mb-1">Grafik Laporan per Tanggal</span>
+                                <span class="text-muted fw-semibold fs-7">Dari rekap_tanggal (Swagger)</span>
                             </h3>
                         </div>
-                        <div class="card-body py-3">
-                            <div class="table-responsive">
-                                <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
-                                    <thead>
-                                        <tr class="fw-bold text-muted">
-                                            <th class="min-w-150px">Kecamatan</th>
-                                            <th class="min-w-100px text-end">Jumlah</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @if(!empty($kecamatanCounts))
-                                            @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
-                                                <tr>
-                                                    <td>
-                                                        <span class="text-dark fw-bold text-hover-primary d-block fs-6">
-                                                            {{ strip_tags($row['nama']) }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-end">
-                                                        <span class="badge badge-light-primary fs-7 fw-bold">{{ (int)$row['total'] }}</span>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        @else
-                                            <tr><td colspan="2" class="text-center text-muted">Data tidak tersedia</td></tr>
-                                        @endif
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="card-body">
+                            <canvas id="chartKecamatan" height="220"></canvas>
                         </div>
                     </div>
                 </div>
 
-                {{-- Kolom Kanan: Chart --}}
-                <div class="col-xl-7">
-                    <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
-                        <div class="card-header border-0 pt-5">
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="card-label fw-bold fs-3 mb-1">Grafik Statistik</span>
-                                <span class="text-muted fw-semibold fs-7">Visualisasi Top 10 Kecamatan</span>
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartKecamatan" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
 
         </div>
     </div>
 
 @push('scripts')
-    {{-- HAPUS CDN CHART.JS --}}
-    
     <script>
         (function(){
-            // Cek apakah Chart.js sudah terload dari Metronic Plugins
             if (typeof Chart === 'undefined') {
                 console.error('Error: Chart.js tidak ditemukan. Pastikan plugins.bundle.js Metronic sudah di-load di layout.');
                 return;
@@ -157,24 +122,21 @@
             const el = document.getElementById('chartKecamatan');
             if(!el) return;
 
-            // Bersihkan label dari tag HTML jika ada
-            const rawLabels = @json($chartLabels ?? []);
-            const labels = rawLabels.map(label => {
-                var tempDiv = document.createElement("div");
-                tempDiv.innerHTML = label;
-                return tempDiv.textContent || tempDiv.innerText || "";
-            });
-
+            const labels = @json($chartLabels ?? []);
             const values = @json($chartValues ?? []);
 
-            if(labels.length === 0) return;
+            if(!labels || labels.length === 0) return;
 
-            // Gunakan Warna dari Variable CSS Metronic (jika tersedia), atau fallback ke hardcode
-            var primaryColor = KTUtil.getCssVariableValue('--bs-primary') || '#009ef7';
-            var primaryLightColor = KTUtil.getCssVariableValue('--bs-primary-light') || 'rgba(0, 158, 247, 0.2)';
+            var primaryColor = (typeof KTUtil !== 'undefined' && KTUtil.getCssVariableValue)
+                ? (KTUtil.getCssVariableValue('--bs-primary') || '#009ef7')
+                : '#009ef7';
+
+            var primaryLightColor = (typeof KTUtil !== 'undefined' && KTUtil.getCssVariableValue)
+                ? (KTUtil.getCssVariableValue('--bs-primary-light') || 'rgba(0, 158, 247, 0.2)')
+                : 'rgba(0, 158, 247, 0.2)';
 
             new Chart(el, {
-                type: 'line', 
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
@@ -192,19 +154,10 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: { display: true }
-                    },
+                    plugins: { legend: { display: true } },
                     scales: {
-                        y: { 
-                            beginAtZero: true,
-                            ticks: { stepSize: 1, color: '#999' },
-                            grid: { color: '#f3f3f3' }
-                        },
-                        x: {
-                            ticks: { color: '#999' },
-                            grid: { display: false }
-                        }
+                        y: { beginAtZero: true },
+                        x: { }
                     }
                 }
             });
