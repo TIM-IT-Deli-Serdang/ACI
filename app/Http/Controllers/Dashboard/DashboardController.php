@@ -16,148 +16,147 @@ class DashboardController extends Controller
         $token = Session::get('auth_token');
 
         if (empty($user) || empty($token)) {
-            return redirect()->route('login')->withErrors(['_global' => 'Silakan login terlebih dahulu.']);
+            return redirect()->route('login')
+                ->withErrors(['_global' => 'Silakan login terlebih dahulu.']);
         }
 
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         if (empty($baseUrl)) {
-            return redirect()->route('login')->withErrors(['_global' => 'API_BASE_URL belum diset di .env']);
+            return redirect()->route('login')
+                ->withErrors(['_global' => 'API_BASE_URL belum diset di .env']);
         }
 
         // Normalisasi user ke array
         $userArr = is_object($user) ? (array) $user : (array) $user;
 
-        // =========================
-        // 1) REKAP PER STATUS
-        // =========================
-        $rekapStatus = [];
-        $totalLaporan = 0;
+        // =========================================================
+        // ✅ DETEKSI ROLE (prioritas: userArr['roles'][0])
+        // =========================================================
+        $role = '';
 
-        try {
-            $respStatus = Http::withToken($token)->get($baseUrl . '/api/rekap');
-            if ($respStatus->status() === 401) {
-                return redirect()->route('login')->withErrors(['_global' => 'Token expired. Silakan login ulang.']);
+        // Case 1: roles (array) -> ambil role pertama
+        if (isset($userArr['roles']) && is_array($userArr['roles']) && count($userArr['roles']) > 0) {
+            $firstRole = $userArr['roles'][0];
+
+            if (is_string($firstRole)) {
+                $role = $firstRole;
+            } elseif (is_array($firstRole)) {
+                $role = $firstRole['name']
+                    ?? $firstRole['role_name']
+                    ?? $firstRole['roleName']
+                    ?? '';
+            } elseif (is_object($firstRole)) {
+                $role = $firstRole->name
+                    ?? $firstRole->role_name
+                    ?? $firstRole->roleName
+                    ?? '';
             }
-            if ($respStatus->ok()) {
-                $json = $respStatus->json() ?? [];
-                $rekapStatus = $json['rekap_status'] ?? [];
-                $totalLaporan = (int)($json['total'] ?? array_sum($rekapStatus));
-            }
-        } catch (\Throwable $e) {
-            // biarkan kosong; nanti view tampilkan pesan fallback
         }
 
-        // =========================
-        // 2) COUNT PER KECAMATAN
-        //    - ambil list kecamatan dari endpoint datatables
-        //    - lalu ambil total laporan per kecamatan via /api/rekap/kecamatan?kecamatan_id=...
-        // =========================
-        $kecamatanCounts = [];   // untuk tabel (nama => total)
-        $chartLabels = [];       // untuk chart
-        $chartValues = [];
+        // Case 2: fallback kalau roles tidak ada
+        if (empty($role)) {
+            $role = $userArr['role']
+                ?? $userArr['role_name']
+                ?? $userArr['roleName']
+                ?? Session::get('role')
+                ?? '';
+        }
 
-        try {
-            // ambil semua kecamatan (paksa panjang besar biar tidak kepotong)
-            $respKec = Http::withToken($token)->get($baseUrl . '/api/wilayah-kecamatan/datatables', [
-                'draw' => 1,
-                'start' => 0,
-                'length' => 10000,
-                'search' => ['value' => ''],
-            ]);
+        $role = strtolower(trim((string) $role));
+        
 
-            if ($respKec->status() === 401) {
-                return redirect()->route('login')->withErrors(['_global' => 'Token expired. Silakan login ulang.']);
-            }
 
-            $rows = [];
-            if ($respKec->ok()) {
-                $kjson = $respKec->json() ?? [];
-                $rows = $kjson['data'] ?? [];
-            }
+        // =========================================================
+        // ✅ DASHBOARD MASYARAKAT (Swagger)
+        // GET /api/dashboard/masyarakat
+        // View: backend.dashboard.masyarakat
+        // =========================================================
+        if ($role === 'masyarakat') {
+            $rekapStatus  = [];
+            $totalLaporan = 0;
+            $rekapTanggal = [];
+            $dataTerbaru  = []; // opsional kalau nanti swagger nambah
 
-            // helper kecil untuk ambil field fleksibel
-            $pick = function(array $row, array $keys) {
-                foreach ($keys as $k) {
-                    if (array_key_exists($k, $row) && $row[$k] !== null && $row[$k] !== '') {
-                        return $row[$k];
-                    }
+            try {
+                $url  = $baseUrl . '/api/dashboard/masyarakat';
+                $resp = Http::withToken($token)
+                    ->acceptJson()
+                    ->get($url);
+
+                if ($resp->status() === 401) {
+                    return redirect()->route('login')
+                        ->withErrors(['_global' => 'Token expired. Silakan login ulang.']);
                 }
-                return null;
-            };
 
-            // siapkan daftar kecamatan (id + nama)
-            $kecamatanList = [];
-            foreach ($rows as $r) {
-                if (!is_array($r)) continue;
-                $id = $pick($r, ['id', 'kecamatan_id', 'kode', 'kode_kecamatan']);
-                $nm = $pick($r, ['nama_kecamatan', 'nama', 'name', 'kecamatan']);
-                if ($id !== null && $nm !== null) {
-                    $kecamatanList[] = ['id' => $id, 'nama' => $nm];
+                if (!$resp->ok()) {
+                    return view('backend.dashboard.masyarakat', [
+                        'user'         => $userArr,
+                        'rekapStatus'  => [],
+                        'totalLaporan' => 0,
+                        'dataTerbaru'  => [],
+                        'chartLabels'  => [],
+                        'chartValues'  => [],
+                        'apiError'     => $resp->json('message')
+                            ?? ('Gagal ambil dashboard masyarakat (HTTP ' . $resp->status() . ')'),
+                    ]);
                 }
+
+                $json = $resp->json() ?? [];
+
+                $rekapStatus  = $json['rekap_status'] ?? [];
+                $totalLaporan = (int) ($json['total'] ?? 0);
+                $rekapTanggal = $json['rekap_tanggal'] ?? [];
+
+                // opsional
+                $dataTerbaru  = $json['data_terbaru'] ?? $json['dataTerbaru'] ?? [];
+
+            } catch (\Throwable $e) {
+                return view('backend.dashboard.masyarakat', [
+                    'user'         => $userArr,
+                    'rekapStatus'  => [],
+                    'totalLaporan' => 0,
+                    'dataTerbaru'  => [],
+                    'chartLabels'  => [],
+                    'chartValues'  => [],
+                    'apiError'     => 'Tidak dapat menghubungi server backend.',
+                ]);
             }
 
-            // kalau tidak ada data kecamatan, stop
-            if (!empty($kecamatanList)) {
+            // chart dari rekap_tanggal
+            $chartLabels = [];
+            $chartValues = [];
 
-                // request rekap per kecamatan (pakai pool biar lebih cepat)
-                $responses = Http::pool(function ($pool) use ($kecamatanList, $baseUrl, $token) {
-                    $reqs = [];
-                    foreach ($kecamatanList as $kec) {
-                        $reqs[$kec['id']] = $pool->withToken($token)->get($baseUrl . '/api/rekap/kecamatan', [
-                            'kecamatan_id' => $kec['id'],
-                        ]);
-                    }
-                    return $reqs;
+            if (is_array($rekapTanggal)) {
+                usort($rekapTanggal, function ($a, $b) {
+                    return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
                 });
 
-                // susun hasil (nama => total)
-                foreach ($kecamatanList as $kec) {
-                    $id = $kec['id'];
-                    $nama = $kec['nama'];
-
-                    $r = $responses[$id] ?? null;
-                    if ($r && $r->ok()) {
-                        $j = $r->json() ?? [];
-                        $total = (int)($j['total'] ?? 0);
-                        $kecamatanCounts[] = [
-                            'id' => $id,
-                            'nama' => $nama,
-                            'total' => $total
-                        ];
-                    } else {
-                        $kecamatanCounts[] = [
-                            'id' => $id,
-                            'nama' => $nama,
-                            'total' => 0
-                        ];
-                    }
-                }
-
-                // urutkan desc
-                usort($kecamatanCounts, fn($a, $b) => $b['total'] <=> $a['total']);
-
-                // chart: ambil TOP 10 biar rapih
-                $top = array_slice($kecamatanCounts, 0, 10);
-                foreach ($top as $t) {
-                    $chartLabels[] = $t['nama'];
-                    $chartValues[] = (int)$t['total'];
+                foreach ($rekapTanggal as $row) {
+                    $chartLabels[] = (string) ($row['tanggal'] ?? '');
+                    $chartValues[] = (int) ($row['total'] ?? 0);
                 }
             }
-        } catch (\Throwable $e) {
-            // fallback: kosong
+
+            return view('backend.dashboard.masyarakat', [
+                'user'         => $userArr,
+                'rekapStatus'  => $rekapStatus,
+                'totalLaporan' => $totalLaporan,
+                'dataTerbaru'  => $dataTerbaru,
+                'chartLabels'  => $chartLabels,
+                'chartValues'  => $chartValues,
+            ]);
         }
 
+        // =========================================================
+        // DEFAULT (role lain: superadmin/upt/sda/dll) -> sementara biarkan
+        // =========================================================
         return view('backend.dashboard.index', [
-            'user' => $userArr,
-
-            // status
-            'rekapStatus' => $rekapStatus,
-            'totalLaporan' => $totalLaporan,
-
-            // kecamatan
-            'kecamatanCounts' => $kecamatanCounts,
-            'chartLabels' => $chartLabels,
-            'chartValues' => $chartValues,
+            'user'            => $userArr,
+            'rekapStatus'     => [],
+            'totalLaporan'    => 0,
+            'kecamatanCounts' => [],
+            'chartLabels'     => [],
+            'chartValues'     => [],
         ]);
     }
 }
