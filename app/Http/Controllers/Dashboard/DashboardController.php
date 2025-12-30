@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil user + token dari session
+        // 1. Ambil user + token dari session
         $user  = Session::get('user');
         $token = Session::get('auth_token');
 
