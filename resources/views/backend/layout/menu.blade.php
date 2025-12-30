@@ -1,3 +1,21 @@
+@php
+    // Cek Role Superadmin dari Session (Karena Auth Laravel tidak digunakan langsung)
+    $sUser = session('user');
+    $isSuperAdmin = false;
+
+    if ($sUser) {
+        // Handle jika session berupa Object atau Array
+        $roles = is_object($sUser) ? ($sUser->roles ?? []) : ($sUser['roles'] ?? []);
+        
+        foreach ($roles as $role) {
+            $roleName = is_object($role) ? $role->name : ($role['name'] ?? '');
+            if ($roleName === 'Superadmin') {
+                $isSuperAdmin = true;
+                break;
+            }
+        }
+    }
+@endphp
 <div class="app-header-menu app-header-mobile-drawer align-items-stretch" data-kt-drawer="true"
     data-kt-drawer-name="app-header-menu" data-kt-drawer-activate="{default: true, lg: false}"
     data-kt-drawer-overlay="true" data-kt-drawer-width="250px" data-kt-drawer-direction="start"
@@ -62,6 +80,7 @@
          <!--end:Menu sub-->
      </div>
      <!--end:Menu item-->
+     @if($isSuperAdmin)
         <!--begin:Menu item-->
         <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start"
             class="menu-item menu-lg-down-accordion menu-sub-lg-down-indention me-0 me-lg-2">
@@ -162,7 +181,8 @@
             <!--end:Menu sub-->
         </div>
         <!--end:Menu item-->
-
+        @endif 
+        {{-- End if Superadmin --}}
 
 
     </div>

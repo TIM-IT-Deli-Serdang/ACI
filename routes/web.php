@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Backend\Laporan\LaporanWargaController;
 use App\Http\Controllers\Backend\Laporan\RekapLaporanController;
 use App\Http\Controllers\Dashboard\DashboardController;
@@ -43,6 +44,10 @@ Route::get('/', function () {
 });
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+
+// TAMBAHKAN INI: Route Register
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 
 
 Route::middleware(['frontend.auth'])->group(function () {
@@ -109,7 +114,11 @@ Route::prefix('user-management')->group(function () {
 
 Route::prefix('laporan')->group(function () {
     Route::get('/laporan/data', [LaporanWargaController::class, 'getData'])->name('laporan.data');
-    Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
+// Halaman Form Validasi
+Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
+    
+// ACTION SUBMIT VALIDASI (Tambahkan ini)
+Route::post('/laporan/{id}/validation', [LaporanWargaController::class, 'processValidation'])->name('laporan.process-validation');
     Route::resource('/laporan', LaporanWargaController::class)->names('laporan');
 });
 

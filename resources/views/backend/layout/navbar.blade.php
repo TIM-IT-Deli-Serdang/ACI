@@ -1,6 +1,6 @@
 <div class="app-navbar flex-shrink-0">
     <!--begin::Notifications-->
-    <div class="app-navbar-item">
+    {{-- <div class="app-navbar-item">
         <!--begin::Menu- wrapper-->
         <div class="btn btn-icon btn-icon-gray-600 btn-active-color-primary"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
@@ -299,7 +299,7 @@
             <!--end::Tab content-->
         </div>
         <!--end::Menu--> <!--end::Menu wrapper-->
-    </div>
+    </div> --}}
     <!--end::Notifications-->
 @php
     $user = session('user') ?? $user ?? null;

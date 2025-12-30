@@ -16,95 +16,73 @@
             </div>
         </div>
     </div>
+
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-fluid">
             
+            {{-- ===== ROW 2: DETAIL STATUS GRID ===== --}}
             <div class="row g-5 g-xl-8 mb-5 mb-xl-10">
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-primary hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-abstract-26 text-white fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $totalLaporan ?? 0 }}</span>
-                                <span class="text-white opacity-75 fw-semibold fs-6">Total Laporan</span>
+                <div class="col-12">
+                    <div class="card card-flush border border-gray-300">
+                        <div class="card-header pt-5">
+                            <div class="card-title">
+                                <h3 class="fw-bold m-0">Data Laporan per Status</h3>
                             </div>
                         </div>
-                    </div>
-                </div>
+                        <div class="card-body pt-0">
+                             @php
+                                $statusOrder = [
+                                    'pengajuan' => 'Pengajuan',
+                                    'diterima' => 'Diterima',
+                                    'diverifikasi' => 'Diverifikasi',
+                                    'dalam penanganan' => 'Dalam Penanganan',
+                                    'selesai' => 'Selesai',
+                                    'ditolak' => 'Ditolak',
+                                ];
+                                $statusMeta = [
+                                    'pengajuan' => ['icon' => 'bi-send', 'bg' => 'bg-primary'],
+                                    'diterima' => ['icon' => 'bi-check-circle', 'bg' => 'bg-success'],
+                                    'diverifikasi' => ['icon' => 'bi-shield-check', 'bg' => 'bg-info'],
+                                    'dalam penanganan' => ['icon' => 'bi-tools', 'bg' => 'bg-warning'],
+                                    'selesai' => ['icon' => 'bi-flag', 'bg' => 'bg-dark'],
+                                    'ditolak' => ['icon' => 'bi-x-circle', 'bg' => 'bg-danger'],
+                                ];
+                            @endphp
 
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-secondary hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-file-added text-dark fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-dark fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['pengajuan'] ?? 0 }}</span>
-                                <span class="text-dark opacity-75 fw-semibold fs-6">Pengajuan Baru</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-info hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-check-square text-white fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['diterima'] ?? 0 }}</span>
-                                <span class="text-white opacity-75 fw-semibold fs-6">Diterima Admin</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-dark hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-shield-tick text-white fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['diverifikasi'] ?? 0 }}</span>
-                                <span class="text-white opacity-75 fw-semibold fs-6">Telah Diverifikasi</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-warning hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-wrench text-white fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['dalam_penanganan'] ?? 0 }}</span>
-                                <span class="text-white opacity-75 fw-semibold fs-6">Sedang Ditangani</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-success hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-like text-white fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['selesai'] ?? 0 }}</span>
-                                <span class="text-white opacity-75 fw-semibold fs-6">Selesai Dikerjakan</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-xl-3">
-                    <div class="card bg-danger hoverable card-xl-stretch mb-xl-8">
-                        <div class="card-body d-flex align-items-center pt-3 pb-0">
-                            <i class="ki-outline ki-cross-circle text-white fs-3x ms-n1 me-3"></i>
-                            <div class="d-flex flex-column h-100">
-                                <span class="text-white fw-bold fs-2 mb-0 mt-2">{{ $rekapStatus['ditolak'] ?? 0 }}</span>
-                                <span class="text-white opacity-75 fw-semibold fs-6">Laporan Ditolak</span>
-                            </div>
+                            @if(empty($rekapStatus))
+                                <div class="text-muted">Data status belum tersedia.</div>
+                            @else
+                                <div class="row g-3">
+                                    @foreach($statusOrder as $key => $label)
+                                        @php
+                                            $val = (int)($rekapStatus[$key] ?? 0);
+                                            $meta = $statusMeta[$key] ?? ['icon' => 'bi-circle', 'bg' => 'bg-secondary'];
+                                        @endphp
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <div class="card card-flush border border-gray-300 h-100">
+                                                <div class="card-body d-flex align-items-center gap-3">
+                                                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center {{ $meta['bg'] }}"
+                                                         style="width:44px;height:44px;">
+                                                        <i class="bi {{ $meta['icon'] }}" style="font-size:18px;"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="text-muted small">{{ $label }}</div>
+                                                        <div class="fw-bold fs-4">{{ $val }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
+
+            {{-- ===== ROW 2: DETAIL TABEL & CHART ===== --}}
             <div class="row g-5 g-xl-8">
+                {{-- Kolom Kiri: Tabel Top Kecamatan --}}
                 <div class="col-xl-5">
                     <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
                         <div class="card-header border-0 pt-5">
@@ -127,7 +105,6 @@
                                             @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
                                                 <tr>
                                                     <td>
-                                                        {{-- FIX: Gunakan strip_tags untuk membersihkan HTML badge yang ikut dari API --}}
                                                         <span class="text-dark fw-bold text-hover-primary d-block fs-6">
                                                             {{ strip_tags($row['nama']) }}
                                                         </span>
@@ -147,12 +124,13 @@
                     </div>
                 </div>
 
+                {{-- Kolom Kanan: Chart --}}
                 <div class="col-xl-7">
                     <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
                         <div class="card-header border-0 pt-5">
                             <h3 class="card-title align-items-start flex-column">
-                                <span class="card-label fw-bold fs-3 mb-1">Grafik Kecamatan (Top 10)</span>
-                                <span class="text-muted fw-semibold fs-7">Visualisasi data laporan</span>
+                                <span class="card-label fw-bold fs-3 mb-1">Grafik Statistik</span>
+                                <span class="text-muted fw-semibold fs-7">Visualisasi Top 10 Kecamatan</span>
                             </h3>
                         </div>
                         <div class="card-body">
@@ -166,9 +144,16 @@
     </div>
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {{-- HAPUS CDN CHART.JS --}}
+    
     <script>
         (function(){
+            // Cek apakah Chart.js sudah terload dari Metronic Plugins
+            if (typeof Chart === 'undefined') {
+                console.error('Error: Chart.js tidak ditemukan. Pastikan plugins.bundle.js Metronic sudah di-load di layout.');
+                return;
+            }
+
             const el = document.getElementById('chartKecamatan');
             if(!el) return;
 
@@ -184,21 +169,25 @@
 
             if(labels.length === 0) return;
 
+            // Gunakan Warna dari Variable CSS Metronic (jika tersedia), atau fallback ke hardcode
+            var primaryColor = KTUtil.getCssVariableValue('--bs-primary') || '#009ef7';
+            var primaryLightColor = KTUtil.getCssVariableValue('--bs-primary-light') || 'rgba(0, 158, 247, 0.2)';
+
             new Chart(el, {
-                type: 'line', // UBAH KE LINE
+                type: 'line', 
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Jumlah Laporan',
                         data: values,
-                        borderColor: '#009ef7', // Warna garis (Primary Metronic)
-                        backgroundColor: 'rgba(0, 158, 247, 0.2)', // Warna area bawah garis
+                        borderColor: primaryColor,
+                        backgroundColor: primaryLightColor,
                         borderWidth: 2,
                         pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#009ef7',
+                        pointBorderColor: primaryColor,
                         pointRadius: 4,
-                        fill: true, // Isi area di bawah garis
-                        tension: 0.4 // Membuat garis melengkung halus (smooth)
+                        fill: true,
+                        tension: 0.4
                     }]
                 },
                 options: {
@@ -209,7 +198,12 @@
                     scales: {
                         y: { 
                             beginAtZero: true,
-                            ticks: { stepSize: 1 }
+                            ticks: { stepSize: 1, color: '#999' },
+                            grid: { color: '#f3f3f3' }
+                        },
+                        x: {
+                            ticks: { color: '#999' },
+                            grid: { display: false }
                         }
                     }
                 }

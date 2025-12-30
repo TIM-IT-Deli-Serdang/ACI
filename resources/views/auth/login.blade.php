@@ -43,9 +43,18 @@
 
                         </div>
 
-                        <div class="fv-row mb-3">
+                        {{-- <div class="fv-row mb-3">
                             <input type="password" placeholder="Password" name="password" autocomplete="off"
                                 class="form-control bg-transparent" />
+                        </div> --}}
+                        <div class="fv-row mb-3 position-relative">
+                            <input type="password" placeholder="Password" name="password" autocomplete="off"
+                                class="form-control bg-transparent" id="passwordInput" />
+                            
+                            <span class="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2" 
+                                  id="togglePassword" style="z-index: 10; cursor: pointer;">
+                                <i class="ki-outline ki-eye-slash fs-2"></i>
+                            </span>
                         </div>
 
                      
@@ -57,6 +66,15 @@
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                             </button>
                         </div>
+                        <div class="separator separator-content my-14">
+    <span class="w-125px text-gray-500 fw-semibold fs-7">Belum punya akun?</span>
+</div>
+
+<div class="d-grid mb-10">
+    <a href="{{ route('register') }}" class="btn btn-light-primary btn-active-light-primary">
+        Daftar Akun Masyarakat
+    </a>
+</div>
 
                     </form>
 
@@ -216,6 +234,28 @@ document.getElementById('kt_sign_in_form').addEventListener('submit', async func
         setLoading(false);
     }
 });
+
+// SCRIPT TAMBAHAN UNTUK TOGGLE PASSWORD
+document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#passwordInput');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function (e) {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                const icon = this.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('ki-eye-slash');
+                    icon.classList.add('ki-eye');
+                } else {
+                    icon.classList.remove('ki-eye');
+                    icon.classList.add('ki-eye-slash');
+                }
+            });
+        }
+    });
 
 
 /* ---------- lockout countdown UI ---------- */
