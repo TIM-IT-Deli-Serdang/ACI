@@ -66,6 +66,15 @@
                                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                             </button>
                         </div>
+                        <div class="separator separator-content my-14">
+    <span class="w-125px text-gray-500 fw-semibold fs-7">Belum punya akun?</span>
+</div>
+
+<div class="d-grid mb-10">
+    <a href="{{ route('register') }}" class="btn btn-light-primary btn-active-light-primary">
+        Daftar Akun Masyarakat
+    </a>
+</div>
 
                     </form>
 

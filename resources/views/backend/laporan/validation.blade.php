@@ -43,10 +43,8 @@
                                 </a>
                             @else
                                 <div class="alert alert-secondary d-flex align-items-center p-5">
-                                    <i class="ki-outline ki-picture fs-2hx me-4"></i>
                                     <div class="d-flex flex-column">
                                         <h4 class="mb-1 text-dark">Tidak ada foto</h4>
-                                        <span>Pelapor tidak menyertakan foto bukti.</span>
                                     </div>
                                 </div>
                             @endif
@@ -122,8 +120,34 @@
                                         <i class="fa fa-genderless text-info fs-1"></i>
                                     </div>
                                     <div class="timeline-content d-flex flex-column ps-3">
-                                        <span class="fw-bold text-gray-800">Diterima oleh Admin</span>
+                                        <span class="fw-bold text-gray-800">Diterima Admin & Disposisi</span>
                                         <span class="text-muted fs-7">{{ $data['penerima_keterangan'] }}</span>
+                                        
+                                        {{-- LOGIKA PENCARIAN NAMA UPT --}}
+                                        @if(isset($data['upt']))
+                                            {{-- Jika API mengirim relasi upt lengkap --}}
+                                            <div class="d-flex align-items-center mt-2 p-2 bg-light-info rounded border border-info border-dashed">
+                                                <span class="badge badge-info me-2">Disposisi ke</span>
+                                                <span class="fw-bold text-gray-800 fs-7">
+                                                    {{ $data['upt']['nama_upt'] ?? $data['upt']['nama'] ?? 'UPT' }}
+                                                </span>
+                                            </div>
+                                        @elseif(!empty($data['upt_id']))
+                                            {{-- Jika hanya ada ID, cari namanya di listUpt --}}
+                                            @php
+                                                $uptName = 'ID: ' . $data['upt_id']; // Default
+                                                if(!empty($listUpt)) {
+                                                    $found = collect($listUpt)->firstWhere('id', $data['upt_id']);
+                                                    if($found) {
+                                                        $uptName = $found['nama_upt'] ?? $found['nama'] ?? $found['name'] ?? $uptName;
+                                                    }
+                                                }
+                                            @endphp
+                                            <div class="d-flex align-items-center mt-2 p-2 bg-light-info rounded border border-info border-dashed">
+                                                <span class="badge badge-info me-2">Disposisi ke</span>
+                                                <span class="fw-bold text-gray-800 fs-7">{{ $uptName }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -138,7 +162,9 @@
                                         <span class="fw-bold text-gray-800">Diverifikasi UPT</span>
                                         <span class="text-muted fs-7">{{ $data['verif_keterangan'] }}</span>
                                         @if(!empty($data['verif_file']))
-                                            <a href="http://10.0.22.97/storage/verifikasi_laporan/{{ $data['verif_file'] }}" target="_blank" class="badge badge-light-primary mt-1 w-100px">Lihat Bukti</a>
+                                            <a href="http://10.0.22.97/storage/verifikasi_laporan/{{ $data['verif_file'] }}" target="_blank" class="badge badge-light-primary mt-1 w-100px">
+                                                <i class="ki-outline ki-file fs-4 me-1"></i> Lihat Bukti
+                                            </a>
                                         @endif
                                     </div>
                                 </div>
@@ -164,7 +190,7 @@
                                         <i class="fa fa-genderless text-success fs-1"></i>
                                     </div>
                                     <div class="timeline-content d-flex flex-column ps-3">
-                                        <span class="fw-bold text-gray-800">Selesai</span>
+                                        <span class="fw-bold text-gray-800">Selesai Dikerjakan</span>
                                         <span class="text-muted fs-7">{{ $data['selesai_keterangan'] }}</span>
                                     </div>
                                 </div>
@@ -200,7 +226,7 @@
                         <h3 class="card-title align-items-start flex-column">
                             <span class="card-label fw-bold text-gray-900">Aksi Validasi</span>
                             <span class="text-gray-500 mt-1 fw-semibold fs-6">
-                                Status Saat Ini: 
+                                Status: 
                                 @switch($data['status_laporan'])
                                     @case(0) <span class="badge badge-secondary">Pengajuan</span> @break
                                     @case(1) <span class="badge badge-info">Diterima</span> @break
@@ -216,7 +242,6 @@
                     <div class="card-body">
                         @php
                             $status = (int) $data['status_laporan'];
-                            // Logic Apakah Form Muncul?
                             $showForm = false;
                             
                             if ($status == 0 && ($isSuperAdmin || $isSda)) $showForm = true;
@@ -236,9 +261,8 @@
                                     <label class="required form-label fw-bold">Keputusan</label>
                                     <select name="action" id="action_select" class="form-select" required>
                                         <option value="">Pilih Aksi...</option>
-                                        
                                         @if($status == 0)
-                                            <option value="next">Terima Laporan (Lanjut ke UPT)</option>
+                                            <option value="next">Terima & Assign UPT</option>
                                             <option value="reject">Tolak Laporan</option>
                                         @elseif($status == 1)
                                             <option value="next">Verifikasi & Setujui</option>
@@ -253,6 +277,23 @@
                                     </select>
                                 </div>
 
+                                {{-- [BARU] INPUT SELECT UPT (Hanya muncul di Status 0) --}}
+                                @if($status == 0)
+                                    <div class="mb-5 d-none" id="div_upt_select">
+                                        <label class="required form-label fw-bold">Pilih UPT Penanggung Jawab</label>
+                                        <select name="upt_id" class="form-select" data-control="select2" data-placeholder="Pilih UPT...">
+                                            <option></option>
+                                            @if(!empty($listUpt))
+                                                @foreach($listUpt as $upt)
+                                                    <option value="{{ $upt['id'] }}">{{ $upt['nama_upt'] ?? $upt['nama'] ?? 'UPT Tanpa Nama' }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <div class="text-muted fs-7">Laporan akan diteruskan ke UPT ini untuk diverifikasi.</div>
+                                    </div>
+                                @endif
+
+                                {{-- INPUT FILE VERIFIKASI (Hanya Status 1) --}}
                                 @if($status == 1)
                                     <div class="mb-5 d-none" id="div_verif_file">
                                         <label class="required form-label fw-bold">Upload Bukti Verifikasi</label>
@@ -268,12 +309,8 @@
 
                                 <div class="d-flex justify-content-end">
                                     <button type="submit" id="btn_submit_validasi" class="btn btn-primary">
-                                        <span class="indicator-label">
-                                            <i class="ki-outline ki-check-circle fs-2"></i> Simpan Validasi
-                                        </span>
-                                        <span class="indicator-progress">
-                                            Mohon tunggu... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                                        </span>
+                                        <span class="indicator-label"><i class="ki-outline ki-check-circle fs-2"></i> Simpan Validasi</span>
+                                        <span class="indicator-progress">Mohon tunggu... <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                                     </button>
                                 </div>
                             </form>
@@ -300,45 +337,52 @@
     @push('scripts')
     <script>
         $(document).ready(function() {
-            // Logic Show/Hide Upload File (Khusus Status 1)
+            
+            // Logic Show/Hide Inputs
             $('#action_select').on('change', function() {
                 var val = $(this).val();
-                if (val === 'next') {
-                    $('#div_verif_file').removeClass('d-none');
-                    $('input[name="verif_file"]').prop('required', true);
-                } else {
-                    $('#div_verif_file').addClass('d-none');
-                    $('input[name="verif_file"]').prop('required', false);
+                
+                // Status 0: Show/Hide UPT Select
+                if ($('#div_upt_select').length) {
+                    if (val === 'next') {
+                        $('#div_upt_select').removeClass('d-none');
+                        $('select[name="upt_id"]').prop('required', true);
+                    } else {
+                        $('#div_upt_select').addClass('d-none');
+                        $('select[name="upt_id"]').prop('required', false);
+                    }
+                }
+
+                // Status 1: Show/Hide File Upload
+                if ($('#div_verif_file').length) {
+                    if (val === 'next') {
+                        $('#div_verif_file').removeClass('d-none');
+                        $('input[name="verif_file"]').prop('required', true);
+                    } else {
+                        $('#div_verif_file').addClass('d-none');
+                        $('input[name="verif_file"]').prop('required', false);
+                    }
                 }
             });
 
-            // Handle Submit Spinner
+            // Spinner Button
             $('#form_validasi').on('submit', function() {
                 var btn = $('#btn_submit_validasi');
                 btn.attr('data-kt-indicator', 'on');
                 btn.prop('disabled', true);
             });
 
-            // SweetAlert Notification
+            // SweetAlert
             @if(session('success'))
                 Swal.fire({
-                    title: "Berhasil!",
-                    text: "{{ session('success') }}",
-                    icon: "success",
-                    buttonsStyling: false,
-                    confirmButtonText: "Ok, Mengerti!",
-                    customClass: { confirmButton: "btn btn-primary" }
+                    title: "Berhasil!", text: "{{ session('success') }}", icon: "success",
+                    buttonsStyling: false, confirmButtonText: "Ok", customClass: { confirmButton: "btn btn-primary" }
                 });
             @endif
-
             @if(session('error'))
                 Swal.fire({
-                    title: "Gagal!",
-                    text: "{{ session('error') }}",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "Ok, Mengerti!",
-                    customClass: { confirmButton: "btn btn-danger" }
+                    title: "Gagal!", text: "{{ session('error') }}", icon: "error",
+                    buttonsStyling: false, confirmButtonText: "Ok", customClass: { confirmButton: "btn btn-danger" }
                 });
             @endif
         });
