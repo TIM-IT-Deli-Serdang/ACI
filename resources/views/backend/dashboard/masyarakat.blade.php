@@ -89,58 +89,10 @@
             {{-- ===== ROW: LIST TERBARU & CHART TANGGAL ===== --}}
             <div class="row g-5 g-xl-8">
 
-                {{-- Kiri: Laporan Terbaru --}}
-                <div class="col-xl-7">
-                    <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
-                        <div class="card-header border-0 pt-5">
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="card-label fw-bold fs-3 mb-1">Laporan Terbaru</span>
-                                <span class="text-muted fw-semibold fs-7">Data terbaru dari masyarakat</span>
-                            </h3>
-                        </div>
-                        <div class="card-body py-3">
-                            <div class="table-responsive">
-                                <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
-                                    <thead>
-                                        <tr class="fw-bold text-muted">
-                                            <th class="min-w-120px">Status</th>
-                                            <th class="min-w-250px">Deskripsi</th>
-                                            <th class="min-w-250px">Alamat</th>
-                                            <th class="min-w-140px">Tanggal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @if(!empty($dataTerbaru))
-                                            @foreach($dataTerbaru as $row)
-                                                <tr>
-                                                    <td>
-                                                        <span class="badge badge-light-primary">
-                                                            {{ $row['status_laporan'] ?? '-' }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-dark">
-                                                        {{ $row['deskripsi'] ?? '-' }}
-                                                    </td>
-                                                    <td class="text-muted">
-                                                        {{ $row['alamat'] ?? '-' }}
-                                                    </td>
-                                                    <td class="text-muted">
-                                                        {{ $row['created_at'] ?? '-' }}
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        @else
-                                            <tr><td colspan="4" class="text-center text-muted">Data tidak tersedia</td></tr>
-                                        @endif
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            
 
                 {{-- Kanan: Chart Trend per Tanggal --}}
-                <div class="col-xl-5">
+                <div class="col-xl-12">
                     <div class="card card-xl-stretch mb-xl-8 border border-gray-300">
                         <div class="card-header border-0 pt-5">
                             <h3 class="card-title align-items-start flex-column">
