@@ -23,8 +23,10 @@
 
     $isMasyarakat = in_array('masyarakat', $roles);
     
-    // Cek apakah user punya role admin/petugas
-    // array_intersect aman digunakan karena $roles sudah dipastikan string
+    // [BARU] Cek Spesifik Superadmin
+    $isSuperAdmin = in_array('Superadmin', $roles);
+
+    // Cek Group Admin/Petugas (untuk tombol Validasi)
     $intersect = array_intersect(['Superadmin', 'upt', 'sda'], $roles);
     $isAdminOrPetugas = !empty($intersect); 
 @endphp
@@ -230,6 +232,8 @@
         <script type="text/javascript">
             // Pass variable PHP ke JS
             const isMasyarakat = {{ $isMasyarakat ? 'true' : 'false' }};
+            // [BARU] Pass variable isSuperAdmin
+            const isSuperAdmin = {{ $isSuperAdmin ? 'true' : 'false' }};
             const isAdminOrPetugas = {{ $isAdminOrPetugas ? 'true' : 'false' }};
 
             function debounce(func, wait) {
@@ -269,8 +273,13 @@
                         },
                         { data: 'deskripsi', name: 'deskripsi' },
                         { data: 'alamat', name: 'alamat' },
+                        
+                        // KOLOM STATUS
                         { data: 'status_laporan', name: 'status_laporan', orderable: false, searchable: false },
+                        
                         { data: 'created_at', name: 'created_at', orderable: false, searchable: false },
+                        
+                        // KOLOM AKSI
                         {
                             data: 'id',
                             name: 'action',
@@ -279,14 +288,21 @@
                             render: function(data, type, row, meta) {
                                 var urlValidasi = "/laporan/laporan/" + data + "/validation";
                                 
-                                // LOGIC TOMBOL
+                                // AMBIL STATUS RAW DARI BACKEND
+                                var status = (row.status_raw !== undefined && row.status_raw !== null) 
+                                             ? parseInt(row.status_raw) 
+                                             : 0;
+
+                                // 1. Tombol DETAIL (Semua Role Punya)
                                 let btnDetail = `
                                     <div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3 btn-get-show" data-id="${data}">Lihat Detail</a>
                                     </div>`;
                                 
+                                // 2. Tombol VALIDASI (Superadmin, UPT, SDA)
+                                // Validasi muncul jika user admin/petugas DAN status belum selesai/ditolak
                                 let btnValidasi = '';
-                                if (isAdminOrPetugas) {
+                                if (isAdminOrPetugas && status !== 4 && status !== 5) {
                                     btnValidasi = `
                                     <div class="menu-item px-3">
                                         <a href="${urlValidasi}" class="menu-link px-3 text-primary">
@@ -295,10 +311,16 @@
                                     </div>`;
                                 }
 
+                                // 3. Tombol EDIT & DELETE
                                 let btnEdit = '';
                                 let btnDelete = '';
 
-                                if (isMasyarakat) {
+                                // Logic:
+                                // - Masyarakat: HANYA jika status 0 (Pengajuan)
+                                // - Superadmin: BOLEH (Bebas)
+                                const canEditDelete = (isMasyarakat && status === 0) || isSuperAdmin;
+
+                                if (canEditDelete) {
                                     btnEdit = `
                                     <div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3 btn-get-edit" data-id="${data}">Edit</a>
