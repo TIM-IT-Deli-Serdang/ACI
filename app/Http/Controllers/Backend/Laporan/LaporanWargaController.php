@@ -301,9 +301,7 @@ public function getData(Request $request)
 
         if (!$token) return redirect()->route('login');
 
-        // ==========================================
-        // 1. REQUEST API: DATA LAPORAN
-        // ==========================================
+        // 1. Ambil Detail Laporan
         try {
             $respLaporan = Http::withToken($token)->get($baseUrl . '/api/laporan/' . $id);
         } catch (\Exception $e) {
@@ -315,49 +313,54 @@ public function getData(Request $request)
         }
         $dataLaporan = $respLaporan->json()['data'] ?? [];
 
-
-        // ==========================================
-        // 2. REQUEST API: CEK ROLE USER (PENGGANTI SPATIE)
-        // ==========================================
-        
-        // Ambil ID user dari Session (Data mentah saat login)
+        // 2. Cek Role User
         $sessionUser = Session::get('user');
+        if (!$sessionUser) return redirect()->route('login');
         
-        if (!$sessionUser) {
-            return redirect()->route('login')->with('error', 'Sesi habis.');
-        }
-
-        // Handle jika session user berbentuk object atau array
         $userId = is_array($sessionUser) ? $sessionUser['id'] : $sessionUser->id;
-
-        // Tembak API User Detail untuk dapat Roles terbaru
         $respUser = Http::withToken($token)->get($baseUrl . '/api/users/' . $userId);
         
         $roleNames = [];
-        
         if ($respUser->ok()) {
             $userData = $respUser->json()['data'] ?? [];
-            
-            // API mengembalikan roles dalam bentuk Array Object: 
-            // "roles": [ {"id": 1, "name": "Superadmin"}, ... ]
             if (isset($userData['roles']) && is_array($userData['roles'])) {
-                // Kita ambil value 'name'-nya saja -> ['Superadmin', 'upt']
                 $roleNames = collect($userData['roles'])->pluck('name')->toArray();
             }
         }
 
-        // ==========================================
-        // 3. LOGIKA HAK AKSES (MANUAL CHECK)
-        // ==========================================
         $isSuperAdmin = in_array('Superadmin', $roleNames);
         $isSda        = in_array('sda', $roleNames);
         $isUpt        = in_array('upt', $roleNames);
+
+        // 3. [UPDATE] Ambil List UPT
+        // Ambil jika Status = 0 (untuk dropdown) ATAU jika upt_id sudah terisi (untuk tampilan riwayat)
+        $listUpt = [];
+        $shouldFetchUpt = ($dataLaporan['status_laporan'] == 0 && ($isSuperAdmin || $isSda)) 
+                          || !empty($dataLaporan['upt_id']);
+
+        if ($shouldFetchUpt) {
+            try {
+                // Gunakan endpoint DataTables dengan length besar agar dapat semua
+                $respUpt = Http::withToken($token)->get($baseUrl . '/api/upt', [
+                    'length' => 1000, 
+                    'start'  => 0
+                ]);
+
+                if ($respUpt->ok()) {
+                    $jsonUpt = $respUpt->json();
+                    $listUpt = $jsonUpt['data'] ?? []; 
+                }
+            } catch (\Exception $e) {
+                // Silent fail
+            }
+        }
 
         return view('backend.laporan.validation', [
             'data'         => $dataLaporan,
             'isSuperAdmin' => $isSuperAdmin,
             'isSda'        => $isSda,
-            'isUpt'        => $isUpt
+            'isUpt'        => $isUpt,
+            'listUpt'      => $listUpt, // Kirim ke view
         ]);
     }
 
@@ -368,38 +371,35 @@ public function getData(Request $request)
         
         if (!$token) return redirect()->route('login');
 
-        // 1. Ambil Input dari Form
-        $action = $request->action; // 'next' (terima) atau 'reject' (tolak)
+        $action = $request->action; 
         $currentStatus = (int) $request->current_status;
         $keterangan = $request->keterangan;
 
-        // 2. Siapkan Payload untuk API
         $payload = [];
         
         // --- LOGIKA MAPPING STATUS & FIELD ---
         if ($action === 'reject') {
-            // === KASUS MENOLAK (SEMUA STATUS -> 5) ===
+            // Case Tolak
             $payload['status_laporan'] = 5;
-            
-            // Tentukan field keterangan tolak berdasarkan status saat ini
             if ($currentStatus == 0) $payload['penerima_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 1) $payload['verif_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 2) $payload['penanganan_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 3) $payload['selesai_keterangan_tolak'] = $keterangan;
 
         } else {
-            // === KASUS MENERIMA / LANJUT ===
-            
+            // Case Terima / Lanjut
             if ($currentStatus == 0) {
                 // 0 (Pengajuan) -> 1 (Diterima)
                 $payload['status_laporan'] = 1;
                 $payload['penerima_keterangan'] = $keterangan;
+                
+                // [BARU] Tambahkan Assign UPT ID
+                $payload['upt_id'] = $request->upt_id; 
             } 
             elseif ($currentStatus == 1) {
                 // 1 (Diterima) -> 2 (Verifikasi)
                 $payload['status_laporan'] = 2;
                 $payload['verif_keterangan'] = $keterangan;
-                // Khusus status 1 -> 2 ada file upload
             }
             elseif ($currentStatus == 2) {
                 // 2 (Verifikasi) -> 3 (Penanganan)
@@ -414,24 +414,18 @@ public function getData(Request $request)
         }
 
         try {
-            // 3. Kirim Request ke API Universal
             $http = Http::withToken($token);
 
-            // Jika ada file (Hanya pada Status 1 -> 2 dan Action Next)
+            // Upload File (Khusus Status 1 -> 2)
             if ($currentStatus == 1 && $action === 'next' && $request->hasFile('verif_file')) {
                 $file = $request->file('verif_file');
-                $http->attach(
-                    'verif_file', 
-                    file_get_contents($file), 
-                    $file->getClientOriginalName()
-                );
+                $http->attach('verif_file', file_get_contents($file), $file->getClientOriginalName());
             }
 
-            // Endpoint: /api/laporan/update-status/{id}
+            // Kirim Request
             $response = $http->post($baseUrl . '/api/laporan/update-status/' . $id, $payload);
 
             if ($response->successful()) {
-                // UBAH DISINI: Redirect kembali ke route validation (halaman ini lagi), bukan ke index
                 return redirect()->route('laporan.validation', $id)->with('success', 'Status laporan berhasil diperbarui.');
             } else {
                 $msg = $response->json()['message'] ?? 'Gagal memproses validasi.';
