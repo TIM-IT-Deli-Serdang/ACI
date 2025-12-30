@@ -88,28 +88,40 @@ public function getData(Request $request)
         }
 
         try {
-            // Forward semua input ke API. Jika butuh hanya beberapa field, filter di sini.
-            $response = Http::withToken($token)
-                ->post($baseUrl . '/api/laporan', $request->all());
+            // Inisialisasi HTTP Client dengan Token
+            $http = Http::withToken($token);
+
+            // --- PERBAIKAN DI SINI: ATTACH FILE ---
+            if ($request->hasFile('file_masyarakat')) {
+                $file = $request->file('file_masyarakat');
+                
+                // Lampirkan file ke request
+                // Parameter: (nama_field, isi_file, nama_asli_file)
+                $http->attach(
+                    'file_masyarakat', 
+                    file_get_contents($file->getRealPath()), 
+                    $file->getClientOriginalName()
+                );
+            }
+
+            // Kirim sisa data (text inputs) menggunakan POST
+            // Kita gunakan $request->except('file_masyarakat') agar file tidak dikirim double (sekali via attach, sekali via post body)
+            $response = $http->post($baseUrl . '/api/laporan', $request->except('file_masyarakat'));
+
         } catch (\Throwable $e) {
-            // Gagal koneksi ke backend
             return response()->json([
                 'status' => false,
-                'message' => 'Tidak dapat menghubungi server backend.'
+                'message' => 'Tidak dapat menghubungi server backend: ' . $e->getMessage()
             ], 500);
         }
 
-        // Jika API mengembalikan Unauthorized
+        // ... (Sisa kode validasi response sama seperti sebelumnya) ...
+        
         if ($response->status() === 401) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Token tidak valid atau sudah expired.'
-            ], 401);
+            return response()->json(['status' => false, 'message' => 'Token expired.'], 401);
         }
 
-        // Jika API mengembalikan validation error
         if ($response->status() === 422) {
-            // pastikan format errors diteruskan persis seperti API
             return response()->json([
                 'status'  => 422,
                 'message' => $response->json()['message'] ?? 'Validation Error',
@@ -117,15 +129,13 @@ public function getData(Request $request)
             ], 422);
         }
 
-        // Jika ada error lain dari API
         if (!$response->ok()) {
             return response()->json([
                 'status' => false,
-                'message' => $response->json()['message'] ?? 'Gagal menyimpan data Laporan.'
+                'message' => $response->json()['message'] ?? 'Gagal menyimpan data.'
             ], $response->status());
         }
 
-        // Berhasil (mis. 201 Created) -> teruskan body API ke frontend beserta status code
         return response()->json($response->json(), $response->status());
     }
 
@@ -232,12 +242,30 @@ public function getData(Request $request)
         }
 
         try {
-            // Jika butuh file upload, gunakan multipart/form-data. Berikut asumsinya form-data biasa.
-            $response = Http::withToken($token)
-                ->put($baseUrl . '/api/laporan/' . $id, $request->all());
+            $http = Http::withToken($token);
+
+            // 1. ATTACH FILE JIKA ADA
+            if ($request->hasFile('file_masyarakat')) {
+                $file = $request->file('file_masyarakat');
+                $http->attach(
+                    'file_masyarakat', 
+                    file_get_contents($file->getRealPath()), 
+                    $file->getClientOriginalName()
+                );
+            }
+
+            // 2. KIRIM SEBAGAI POST (Sesuai Swagger Backend)
+            // Kita buang field '_method' agar backend tidak menganggapnya sebagai PUT
+            // Kita buang 'file_masyarakat' dari body karena sudah di-attach
+            $dataToSend = $request->except(['file_masyarakat', '_method']);
+
+            $response = $http->post($baseUrl . '/api/laporan/' . $id, $dataToSend);
+
         } catch (\Throwable $e) {
-            return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
+            return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend: ' . $e->getMessage()], 500);
         }
+
+        // --- VALIDASI RESPONSE ---
 
         if ($response->status() === 401) {
             return response()->json(['status' => false, 'message' => 'Token tidak valid atau sudah expired.'], 401);
@@ -255,7 +283,7 @@ public function getData(Request $request)
             return response()->json(['status' => false, 'message' => $response->json()['message'] ?? 'Gagal memperbarui data.'], $response->status());
         }
 
-        // Berhasil -> teruskan body API (mis. message) dan status
+        // Berhasil -> teruskan body API dan status
         return response()->json($response->json(), $response->status());
     }
 

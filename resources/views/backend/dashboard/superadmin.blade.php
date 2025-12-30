@@ -20,7 +20,7 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-fluid">
             
-            {{-- ===== ROW 2: DETAIL STATUS GRID ===== --}}
+            {{-- ===== ROW 1: DETAIL STATUS GRID ===== --}}
             <div class="row g-5 g-xl-8 mb-5 mb-xl-10">
                 <div class="col-12">
                     <div class="card card-flush border border-gray-300">
@@ -50,7 +50,7 @@
                             @endphp
 
                             @if(empty($rekapStatus))
-                                <div class="text-muted">Data status belum tersedia.</div>
+                                <div class="text-muted py-4">Data status belum tersedia.</div>
                             @else
                                 <div class="row g-3">
                                     @foreach($statusOrder as $key => $label)
@@ -101,21 +101,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @if(!empty($kecamatanCounts))
+                                        {{-- PERBAIKAN DI SINI: Cek apakah array valid sebelum di-slice --}}
+                                        @if(!empty($kecamatanCounts) && is_array($kecamatanCounts))
                                             @foreach(array_slice($kecamatanCounts, 0, 10) as $row)
                                                 <tr>
                                                     <td>
                                                         <span class="text-dark fw-bold text-hover-primary d-block fs-6">
-                                                            {{ strip_tags($row['nama']) }}
+                                                            {{ strip_tags($row['nama'] ?? 'Tanpa Nama') }}
                                                         </span>
                                                     </td>
                                                     <td class="text-end">
-                                                        <span class="badge badge-light-primary fs-7 fw-bold">{{ (int)$row['total'] }}</span>
+                                                        <span class="badge badge-light-primary fs-7 fw-bold">{{ (int)($row['total'] ?? 0) }}</span>
                                                     </td>
                                                 </tr>
                                             @endforeach
                                         @else
-                                            <tr><td colspan="2" class="text-center text-muted">Data tidak tersedia</td></tr>
+                                            <tr><td colspan="2" class="text-center text-muted py-4">Data tidak tersedia</td></tr>
                                         @endif
                                     </tbody>
                                 </table>
@@ -144,32 +145,37 @@
     </div>
 
 @push('scripts')
-    {{-- HAPUS CDN CHART.JS --}}
-    
     <script>
         (function(){
-            // Cek apakah Chart.js sudah terload dari Metronic Plugins
             if (typeof Chart === 'undefined') {
-                console.error('Error: Chart.js tidak ditemukan. Pastikan plugins.bundle.js Metronic sudah di-load di layout.');
+                console.warn('Chart.js belum diload.');
                 return;
             }
 
             const el = document.getElementById('chartKecamatan');
             if(!el) return;
 
-            // Bersihkan label dari tag HTML jika ada
+            // Pastikan data aman (JSON encode array kosong jika null)
             const rawLabels = @json($chartLabels ?? []);
+            const values = @json($chartValues ?? []);
+
+            if(!Array.isArray(rawLabels) || rawLabels.length === 0) {
+                // Tampilkan pesan kosong di canvas jika data kosong
+                const ctx = el.getContext('2d');
+                ctx.font = "14px Arial";
+                ctx.fillStyle = "gray";
+                ctx.textAlign = "center";
+                ctx.fillText("Data grafik tidak tersedia", el.width/2, el.height/2);
+                return;
+            }
+
+            // Bersihkan label HTML
             const labels = rawLabels.map(label => {
                 var tempDiv = document.createElement("div");
                 tempDiv.innerHTML = label;
                 return tempDiv.textContent || tempDiv.innerText || "";
             });
 
-            const values = @json($chartValues ?? []);
-
-            if(labels.length === 0) return;
-
-            // Gunakan Warna dari Variable CSS Metronic (jika tersedia), atau fallback ke hardcode
             var primaryColor = KTUtil.getCssVariableValue('--bs-primary') || '#009ef7';
             var primaryLightColor = KTUtil.getCssVariableValue('--bs-primary-light') || 'rgba(0, 158, 247, 0.2)';
 

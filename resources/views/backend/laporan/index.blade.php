@@ -2,6 +2,33 @@
 @section('title', 'Laporan Warga')
 @section('content')
 
+@php
+    // Cek Role User dari Session dengan Normalisasi Data
+    $sUser = session('user');
+    $rawRoles = $sUser['roles'] ?? [];
+    $roles = [];
+
+    // Normalisasi: Pastikan roles menjadi array string sederhana ['masyarakat', 'Superadmin']
+    if (is_array($rawRoles)) {
+        foreach($rawRoles as $r) {
+            if (is_string($r)) {
+                $roles[] = $r;
+            } elseif (is_array($r) && isset($r['name'])) {
+                $roles[] = $r['name'];
+            } elseif (is_object($r) && isset($r->name)) {
+                $roles[] = $r->name;
+            }
+        }
+    }
+
+    $isMasyarakat = in_array('masyarakat', $roles);
+    
+    // Cek apakah user punya role admin/petugas
+    // array_intersect aman digunakan karena $roles sudah dipastikan string
+    $intersect = array_intersect(['Superadmin', 'upt', 'sda'], $roles);
+    $isAdminOrPetugas = !empty($intersect); 
+@endphp
+
     <div id="kt_app_toolbar" class="app-toolbar d-flex flex-stack py-4 py-lg-8">
         <div class="d-flex flex-grow-1 flex-stack flex-wrap gap-2 mb-n10" id="kt_toolbar">
             <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
@@ -14,13 +41,17 @@
                 </ul>
             </div>
             
-            {{-- <div class="d-flex align-items-center pt-4 pb-7 pt-lg-1 pb-lg-2">
-                <button type="button" id="btn_tambah_data" class="btn btn-sm btn-primary">
+            {{-- TOMBOL TAMBAH (KHUSUS MASYARAKAT) --}}
+            @if($isMasyarakat)
+            <div class="d-flex align-items-center pt-4 pb-7 pt-lg-1 pb-lg-2">
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#Modal_Tambah_Data">
                     <i class="ki-outline ki-plus fs-2"></i> Buat Laporan
                 </button>
-            </div> --}}
+            </div>
+            @endif
         </div>
     </div>
+
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div class="card border border-gray-300">
             <div class="card-header border-bottom border-gray-300 bg-secondary">
@@ -51,13 +82,95 @@
         </div>
     </div>
 
-    <div class="modal fade" id="Modal_Tambah_Data" tabindex="-1" aria-hidden="true">
-       </div>
+    {{-- MODAL TAMBAH DATA (BARU) --}}
+    <div class="modal fade" id="Modal_Tambah_Data" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <div class="modal-header pb-0 border-0 justify-content-end">
+                    <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                        <i class="ki-outline ki-cross fs-1"></i>
+                    </div>
+                </div>
+                <div class="modal-body scroll-y mx-5 mx-xl-18 pt-0 pb-15">
+                    <div class="text-center mb-13">
+                        <h1 class="mb-3">Buat Laporan Baru</h1>
+                        <div class="text-muted fw-semibold fs-5">Sampaikan keluhan infrastruktur Anda</div>
+                    </div>
 
+                    <form id="FormTambahLaporan" class="form" enctype="multipart/form-data">
+                        @csrf
+                        {{-- Kategori --}}
+                        <div class="fv-row mb-8">
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
+                                <span class="required">Kategori Laporan</span>
+                            </label>
+                            <select name="kategori_laporan_id" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="Pilih Kategori">
+                                <option></option>
+                                <option value="1">Jalan Rusak</option>
+                                <option value="2">Drainase Tersumbat</option>
+                                <option value="3">Banjir</option>
+                                <option value="4">Tanggul / Jembatan Rusak</option>
+                                <option value="5">Infrastruktur Lainnya</option>
+                            </select>
+                        </div>
+
+                        {{-- Deskripsi --}}
+                        <div class="fv-row mb-8">
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
+                                <span class="required">Deskripsi Masalah</span>
+                            </label>
+                            <textarea class="form-control form-control-solid" rows="3" name="deskripsi" placeholder="Jelaskan detail kerusakan..."></textarea>
+                        </div>
+
+                        {{-- Alamat --}}
+                        <div class="fv-row mb-8">
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
+                                <span class="required">Alamat Lengkap</span>
+                            </label>
+                            <textarea class="form-control form-control-solid" rows="2" name="alamat" placeholder="Nama Jalan, Desa, Kecamatan..."></textarea>
+                        </div>
+
+                        {{-- Lokasi (Lat/Long) --}}
+                        <div class="row mb-8">
+                            <div class="col-md-6 fv-row">
+                                <label class="fs-6 fw-semibold mb-2">Latitude</label>
+                                <input type="text" class="form-control form-control-solid" name="latitude" placeholder="-3.xxxx" />
+                            </div>
+                            <div class="col-md-6 fv-row">
+                                <label class="fs-6 fw-semibold mb-2">Longitude</label>
+                                <input type="text" class="form-control form-control-solid" name="longitude" placeholder="98.xxxx" />
+                            </div>
+                        </div>
+
+                        {{-- Wilayah --}}
+                        <input type="hidden" name="kecamatan_id" value="1"> 
+                        <input type="hidden" name="kelurahan_id" value="1">
+
+                        {{-- Foto --}}
+                        <div class="fv-row mb-8">
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">Foto Bukti</label>
+                            <input type="file" class="form-control form-control-solid" name="file_masyarakat" accept=".png, .jpg, .jpeg">
+                            <div class="text-muted fs-7 mt-2">Format: png, jpg, jpeg. Max 2MB.</div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" id="btn_simpan_laporan" class="btn btn-primary">
+                                <span class="indicator-label">Kirim Laporan</span>
+                                <span class="indicator-progress">Mohon tunggu... <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL SHOW --}}
     <div class="modal fade shadow-sm" id="Modal_Show_Data" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered mw-750px">
             <div class="modal-content" id="show-modal-content">
-                <div class="modal-header align-items-center py-6 border-gray-300" style="cursor: move;">
+                <div class="modal-header align-items-center py-6 border-gray-300">
                     <h4 class="fw-bold m-0">Detail Laporan</h4>
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                         <i class="ki-outline ki-cross fs-1 text-dark"></i>
@@ -73,10 +186,11 @@
         </div>
     </div>
 
-    <div class="modal fade" id="Modal_Edit_Data" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    {{-- MODAL EDIT --}}
+    <div class="modal fade" id="Modal_Edit_Data" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered mw-550px">
             <div class="modal-content" id="edit-modal-content">
-                <div class="modal-header align-items-center py-6 border-gray-300" style="cursor: move;">
+                <div class="modal-header align-items-center py-6 border-gray-300">
                     <h4 class="fw-bold">Edit Laporan</h4>
                     <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
                         <i class="ki-outline ki-cross fs-1 text-dark"></i>
@@ -114,6 +228,10 @@
         <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
         
         <script type="text/javascript">
+            // Pass variable PHP ke JS
+            const isMasyarakat = {{ $isMasyarakat ? 'true' : 'false' }};
+            const isAdminOrPetugas = {{ $isAdminOrPetugas ? 'true' : 'false' }};
+
             function debounce(func, wait) {
                 let timeout;
                 return function(...args) {
@@ -135,12 +253,6 @@
                 var table = $('.chimox').DataTable({
                     processing: true,
                     serverSide: true,
-                    language: {
-                        processing: "Please Wait ...",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data",
-                        search: "Cari:",
-                    },
                     ajax: {
                         url: "{{ route('laporan.data') }}",
                         type: 'GET',
@@ -160,52 +272,59 @@
                         { data: 'status_laporan', name: 'status_laporan', orderable: false, searchable: false },
                         { data: 'created_at', name: 'created_at', orderable: false, searchable: false },
                         {
-    data: 'id',
-    name: 'action',
-    orderable: false,
-    searchable: false,
-    render: function(data, type, row, meta) {
-        // Generate Link URL Validasi
-        var urlValidasi = "/laporan/laporan/" + data + "/validation";
+                            data: 'id',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row, meta) {
+                                var urlValidasi = "/laporan/laporan/" + data + "/validation";
+                                
+                                // LOGIC TOMBOL
+                                let btnDetail = `
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3 btn-get-show" data-id="${data}">Lihat Detail</a>
+                                    </div>`;
+                                
+                                let btnValidasi = '';
+                                if (isAdminOrPetugas) {
+                                    btnValidasi = `
+                                    <div class="menu-item px-3">
+                                        <a href="${urlValidasi}" class="menu-link px-3 text-primary">
+                                            <i class="ki-outline ki-shield-tick fs-6 me-2"></i> Validasi
+                                        </a>
+                                    </div>`;
+                                }
 
-        return `
-        <div class="dropdown text-end">
-            <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" id="dropdownAction_${meta.row}"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                Aksi
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4" aria-labelledby="dropdownAction_${meta.row}">
-                
-                <div class="menu-item px-3">
-                    <a href="#" class="menu-link px-3 btn-get-show" data-id="${data}">
-                        Lihat Detail
-                    </a>
-                </div>
+                                let btnEdit = '';
+                                let btnDelete = '';
 
-                <div class="menu-item px-3">
-                    <a href="${urlValidasi}" class="menu-link px-3 text-primary">
-                        <i class="ki-outline ki-shield-tick fs-6 me-2"></i> Validasi
-                    </a>
-                </div>
+                                if (isMasyarakat) {
+                                    btnEdit = `
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3 btn-get-edit" data-id="${data}">Edit</a>
+                                    </div>`;
+                                    
+                                    btnDelete = `
+                                    <div class="menu-item px-3">
+                                        <a href="#" class="menu-link px-3 btn-delete text-danger" data-id="${data}">Hapus</a>
+                                    </div>`;
+                                }
 
-                <div class="menu-item px-3">
-                    <a href="#" class="menu-link px-3 btn-get-edit" data-id="${data}">
-                        Edit
-                    </a>
-                </div>
-
-                <div class="menu-item px-3">
-                    <a href="#" class="menu-link px-3 btn-delete text-danger" data-id="${data}">
-                        Hapus
-                    </a>
-                </div>
-            </ul>
-        </div>
-        `;
-    }
-}
+                                return `
+                                <div class="dropdown text-end">
+                                    <button class="btn btn-sm btn-light btn-active-light-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Aksi
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4">
+                                        ${btnDetail}
+                                        ${btnValidasi}
+                                        ${btnEdit}
+                                        ${btnDelete}
+                                    </ul>
+                                </div>`;
+                            }
+                        }
                     ],
-                    // PENTING: Re-init menu Metronic setelah tabel di-render
                     drawCallback: function() {
                         KTMenu.createInstances();
                     }
@@ -215,31 +334,109 @@
                     table.search($(this).val()).draw();
                 }, 500));
 
-                // --- SHOW DATA (Ini yang memperbaiki modal detail) ---
+                // --- TAMBAH DATA ---
+                $('#FormTambahLaporan').on('submit', function(e) {
+                    e.preventDefault();
+                    var formData = new FormData(this);
+                    var btn = $('#btn_simpan_laporan');
+                    
+                    btn.attr('data-kt-indicator', 'on').prop('disabled', true);
+
+                    $.ajax({
+                        url: "{{ route('laporan.store') }}",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                        success: function(res) {
+                            $('#Modal_Tambah_Data').modal('hide');
+                            $('#FormTambahLaporan')[0].reset();
+                            table.draw();
+                            Swal.fire("Berhasil!", "Laporan berhasil dikirim.", "success");
+                        },
+                        error: function(err) {
+                            Swal.fire("Gagal", err.responseJSON.message || "Terjadi kesalahan", "error");
+                        },
+                        complete: function() {
+                            btn.removeAttr('data-kt-indicator').prop('disabled', false);
+                        }
+                    });
+                });
+
+                // --- SHOW DATA ---
                 $("body").on("click", ".btn-get-show", function(e) {
                     e.preventDefault();
                     let id = $(this).data("id");
-                    
-                    // Reset konten modal
                     $("#ShowRowModalBody").html('<div class="text-center py-10"><div class="spinner-border text-primary"></div><p class="mt-3">Loading...</p></div>');
-                    
-                    // Tampilkan Modal
                     var myModal = new bootstrap.Modal(document.getElementById('Modal_Show_Data'));
                     myModal.show();
-
-                    // Fetch data
                     $.ajax({
                         url: "/laporan/laporan/" + id,
                         dataType: "json",
                         success: function(result) {
-                            if (result.html) {
-                                $("#ShowRowModalBody").html(result.html);
-                            } else {
-                                $("#ShowRowModalBody").html('<p class="text-danger">Data tidak tersedia.</p>');
-                            }
+                            $("#ShowRowModalBody").html(result.html || '<p class="text-danger">Data tidak tersedia.</p>');
                         },
                         error: function() {
                             $("#ShowRowModalBody").html('<p class="text-danger">Gagal memuat data.</p>');
+                        }
+                    });
+                });
+
+                // --- EDIT DATA (Load Form) ---
+                $("body").on("click", ".btn-get-edit", function(e) {
+                    e.preventDefault();
+                    let id = $(this).data("id");
+                    
+                    $("#EditRowModalBody").html('<div class="text-center py-10"><div class="spinner-border text-primary"></div><p class="mt-3">Loading...</p></div>');
+                    var myModal = new bootstrap.Modal(document.getElementById('Modal_Edit_Data'));
+                    myModal.show();
+
+                    $.ajax({
+                        url: "/laporan/laporan/" + id + "/edit",
+                        dataType: "json",
+                        success: function(result) {
+                            $("#EditRowModalBody").html(result.html);
+                            // Simpan ID untuk submit
+                            $('#FormEditModalID').data('id', id);
+                        },
+                        error: function() {
+                            $("#EditRowModalBody").html('<p class="text-danger">Gagal memuat form edit.</p>');
+                        }
+                    });
+                });
+
+                // --- UPDATE DATA (Submit) ---
+                $('#FormEditModalID').on('submit', function(e) {
+                    e.preventDefault();
+                    var id = $(this).data('id');
+                    var formData = new FormData(this);
+                    var btn = $('#btn-edit-data');
+
+                    formData.append('_method', 'PUT');
+
+                    btn.find('.indicator-label').hide();
+                    btn.find('.indicator-progress').show();
+                    btn.prop('disabled', true);
+
+                    $.ajax({
+                        url: "/laporan/laporan/" + id,
+                        type: "POST", 
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(res) {
+                            $('#Modal_Edit_Data').modal('hide');
+                            table.draw();
+                            Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
+                        },
+                        error: function(err) {
+                            Swal.fire("Gagal", err.responseJSON.message || "Gagal update", "error");
+                        },
+                        complete: function() {
+                            btn.find('.indicator-label').show();
+                            btn.find('.indicator-progress').hide();
+                            btn.prop('disabled', false);
                         }
                     });
                 });
@@ -248,10 +445,9 @@
                 $("body").on("click", ".btn-delete", function(e) {
                     e.preventDefault();
                     var id = $(this).data("id");
-                    
                     Swal.fire({
                         title: "Yakin hapus?",
-                        text: "Data tidak bisa dikembalikan!",
+                        text: "Laporan yang dihapus tidak bisa dikembalikan!",
                         icon: "warning",
                         showCancelButton: true,
                         confirmButtonText: "Ya, Hapus!",
@@ -263,55 +459,16 @@
                                 method: 'POST',
                                 data: { _method: 'DELETE', _token: $('meta[name="csrf-token"]').attr('content') },
                                 success: function(res) {
-                                    $(".chimox").DataTable().ajax.reload();
-                                    Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+                                    table.draw();
+                                    Swal.fire("Terhapus!", "Laporan berhasil dihapus.", "success");
                                 },
                                 error: function() {
-                                    Swal.fire("Gagal", "Terjadi kesalahan server.", "error");
+                                    Swal.fire("Gagal", "Tidak dapat menghapus data (mungkin sudah diproses).", "error");
                                 }
                             });
                         }
                     });
                 });
-            });
-        </script>
-
-        <script>    
-            var elements = document.querySelectorAll('#Modal_Show_Data, #Modal_Edit_Data'); // Tambah modal tidak perlu dimasukkan
-            elements.forEach(function(element) {
-                dragElement(element);
-
-                function dragElement(elmnt) {
-                    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                    if (elmnt.querySelector('.modal-header')) {
-                        elmnt.querySelector('.modal-header').onmousedown = dragMouseDown;
-                    } else {
-                        elmnt.onmousedown = dragMouseDown;
-                    }
-
-                    function dragMouseDown(e) {
-                        e = e || window.event;
-                        pos3 = e.clientX;
-                        pos4 = e.clientY;
-                        document.onmouseup = closeDragElement;
-                        document.onmousemove = elementDrag;
-                    }
-
-                    function elementDrag(e) {
-                        e = e || window.event;
-                        pos1 = pos3 - e.clientX;
-                        pos2 = pos4 - e.clientY;
-                        pos3 = e.clientX;
-                        pos4 = e.clientY;
-                        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-                    }
-
-                    function closeDragElement() {
-                        document.onmouseup = null;
-                        document.onmousemove = null;
-                    }
-                }
             });
         </script>
     @endpush

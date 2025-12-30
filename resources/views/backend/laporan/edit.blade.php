@@ -1,57 +1,72 @@
 <input type="hidden" name="hidden_id" id="hidden_id" value="{{ $data['id'] ?? '' }}" />
 
+{{-- KATEGORI LAPORAN --}}
+<div class="fv-row mb-7">
+    <label class="required fw-semibold fs-7 mb-2">Kategori Laporan</label>
+    <select name="kategori_laporan_id" class="form-select form-select-solid" data-control="select2" data-hide-search="true" data-placeholder="Pilih Kategori">
+        <option></option>
+        @php $kat = $data['kategori_laporan_id'] ?? 0; @endphp
+        <option value="1" {{ $kat == 1 ? 'selected' : '' }}>Jalan Rusak</option>
+        <option value="2" {{ $kat == 2 ? 'selected' : '' }}>Drainase Tersumbat</option>
+        <option value="3" {{ $kat == 3 ? 'selected' : '' }}>Banjir</option>
+        <option value="4" {{ $kat == 4 ? 'selected' : '' }}>Tanggul / Jembatan Rusak</option>
+        <option value="5" {{ $kat == 5 ? 'selected' : '' }}>Infrastruktur Lainnya</option>
+    </select>
+</div>
 
- <!-- Input group: Nama Brand -->
-                        <div class="fv-row mb-7">
-                            <label class="required fw-semibold fs-7 mb-2">Kode SKPD</label>
-                            <input type="text" name="kode_skpd" id="kode_skpd" class="form-control mb-3 mb-lg-0"
-                                placeholder="Contoh: 1.3302.03" value="{{ $data['kode_skpd'] ?? '-' }}"/>
-                            <span class="text-danger error-text kode_skpd_error_edit"></span>
-                        </div>
+{{-- DESKRIPSI --}}
+<div class="fv-row mb-7">
+    <label class="required fw-semibold fs-7 mb-2">Deskripsi Masalah</label>
+    <textarea name="deskripsi" class="form-control form-control-solid" rows="3" placeholder="Jelaskan detail kerusakan...">{{ $data['deskripsi'] ?? '' }}</textarea>
+</div>
 
-                        <!-- Input group: Nama Brand -->
-                        <div class="fv-row mb-7">
-                            <label class="required fw-semibold fs-7 mb-2">Nama SKPD</label>
-                            <input type="text" name="nama_skpd" id="nama_skpd" class="form-control mb-3 mb-lg-0"
-                                placeholder="Contoh: Kominfo" value="{{ $data['nama_skpd'] ?? '-' }}"/>
-                            <span class="text-danger error-text nama_skpd_error_edit"></span>
-                        </div>
+{{-- ALAMAT --}}
+<div class="fv-row mb-7">
+    <label class="required fw-semibold fs-7 mb-2">Alamat Lengkap</label>
+    <textarea name="alamat" class="form-control form-control-solid" rows="2" placeholder="Nama Jalan, Desa, Kecamatan...">{{ $data['alamat'] ?? '' }}</textarea>
+</div>
 
-                        <div class="row">
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">Kepala SKPD</label>
-                                <input type="text" name="kepala_skpd" id="kepala_skpd" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: Jhon Hunter" value="{{ $data['kepala_skpd'] ?? '-' }}"/>
-                                <span class="text-danger error-text kepala_skpd_error_edit"></span>
-                            </div>
+{{-- LOKASI LAT/LONG --}}
+<div class="row mb-7">
+    <div class="col-md-6 fv-row">
+        <label class="fw-semibold fs-7 mb-2">Latitude</label>
+        <input type="text" name="latitude" class="form-control form-control-solid" placeholder="-3.xxxx" value="{{ $data['latitude'] ?? '' }}" />
+    </div>
+    <div class="col-md-6 fv-row">
+        <label class="fw-semibold fs-7 mb-2">Longitude</label>
+        <input type="text" name="longitude" class="form-control form-control-solid" placeholder="98.xxxx" value="{{ $data['longitude'] ?? '' }}" />
+    </div>
+</div>
 
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">NIP Kepala SKPD</label>
-                                <input type="text" name="nip_kepala" id="nip_kepala" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: 1234 xxxx 5678" value="{{ $data['nip_kepala'] ?? '-' }}"/>
-                                <span class="text-danger error-text nip_kepala_error_edit"></span>
-                            </div>
-                        </div>
+{{-- HIDDEN WILAYAH (Sesuai logic store) --}}
+<input type="hidden" name="kecamatan_id" value="{{ $data['kecamatan_id'] ?? 1 }}">
+<input type="hidden" name="kelurahan_id" value="{{ $data['kelurahan_id'] ?? 1 }}">
 
+{{-- FOTO BUKTI --}}
+<div class="fv-row mb-7">
+    <label class="fw-semibold fs-7 mb-2">Foto Bukti</label>
+    
+    {{-- Tampilkan foto lama jika ada --}}
+    @if (!empty($data['file_masyarakat']))
+        <div class="mb-3">
+            <div class="symbol symbol-100px symbol-2by3 me-4">
+                <div class="symbol-label" style="background-image: url('http://10.0.22.97/storage/laporan/masyarakat/{{ $data['file_masyarakat'] }}')"></div>
+            </div>
+            <div class="text-muted fs-7 mt-1">Foto saat ini. Upload baru untuk mengganti.</div>
+        </div>
+    @endif
 
-                        <div class="row">
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">latitude</label>
-                                <input type="text" name="latitude" id="latitude" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: -6.208806" value="{{ $data['latitude'] ?? '-' }}"/>
-                                <span class="text-danger error-text latitude_error_edit"></span>
-                            </div>
+    <input type="file" name="file_masyarakat" class="form-control form-control-solid" accept=".png, .jpg, .jpeg">
+    <div class="text-muted fs-7 mt-2">Biarkan kosong jika tidak ingin mengubah foto.</div>
+</div>
 
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">longitude</label>
-                                <input type="text" name="longitude" id="longitude" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: 106.845175" value="{{ $data['longitude'] ?? '-' }}"/>
-                                <span class="text-danger error-text longitude_error_edit"></span>
-                            </div>
-                        </div>
-
-                      
+{{-- RE-INIT SELECT2 PADA AJAX LOAD --}}
+<script>
+    $(document).ready(function() {
+        // Karena form ini diload via AJAX, kita perlu re-init component select2 manual
+        $('#FormEditModalID select[data-control="select2"]').select2({
+            dropdownParent: $('#Modal_Edit_Data'),
+            minimumResultsForSearch: Infinity
+        });
+    });
+</script>
