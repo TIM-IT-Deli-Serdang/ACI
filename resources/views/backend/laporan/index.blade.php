@@ -23,7 +23,7 @@
 
     $isMasyarakat = in_array('masyarakat', $roles);
     
-    // [BARU] Cek Spesifik Superadmin
+    // Cek Spesifik Superadmin
     $isSuperAdmin = in_array('Superadmin', $roles);
 
     // Cek Group Admin/Petugas (untuk tombol Validasi)
@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    {{-- MODAL TAMBAH DATA (BARU) --}}
+    {{-- MODAL TAMBAH DATA --}}
     <div class="modal fade" id="Modal_Tambah_Data" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered mw-650px">
             <div class="modal-content">
@@ -96,9 +96,9 @@
                 <div class="modal-body scroll-y mx-5 mx-xl-18 pt-0 pb-15">
                     <div class="text-center mb-13">
                         <h1 class="mb-3">Buat Laporan Baru</h1>
-                        <div class="text-muted fw-semibold fs-5">Sampaikan keluhan infrastruktur Anda</div>
+                        <div class="text-muted fw-semibold fs-5">Sampaikan keluhan infrastruktur di Deli Serdang</div>
                     </div>
-
+    
                     <form id="FormTambahLaporan" class="form" enctype="multipart/form-data">
                         @csrf
                         {{-- Kategori --}}
@@ -115,7 +115,7 @@
                                 <option value="5">Infrastruktur Lainnya</option>
                             </select>
                         </div>
-
+    
                         {{-- Deskripsi --}}
                         <div class="fv-row mb-8">
                             <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
@@ -123,38 +123,60 @@
                             </label>
                             <textarea class="form-control form-control-solid" rows="3" name="deskripsi" placeholder="Jelaskan detail kerusakan..."></textarea>
                         </div>
-
+    
+                        {{-- [BARU] Wilayah Deli Serdang --}}
+                        <div class="row mb-8">
+                            <div class="col-md-6 fv-row">
+                                <label class="required fs-6 fw-semibold mb-2">Kecamatan</label>
+                                {{-- ID Deli Serdang di API ibnuX adalah 1207 --}}
+                                <select id="add_kecamatan" name="kecamatan_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Pilih Kecamatan">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 fv-row">
+                                <label class="required fs-6 fw-semibold mb-2">Kelurahan/Desa</label>
+                                <select id="add_kelurahan" name="kelurahan_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Pilih Kelurahan">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+    
                         {{-- Alamat --}}
                         <div class="fv-row mb-8">
                             <label class="d-flex align-items-center fs-6 fw-semibold mb-2">
                                 <span class="required">Alamat Lengkap</span>
                             </label>
-                            <textarea class="form-control form-control-solid" rows="2" name="alamat" placeholder="Nama Jalan, Desa, Kecamatan..."></textarea>
+                            <textarea class="form-control form-control-solid" rows="2" name="alamat" placeholder="Nama Jalan, Dusun..."></textarea>
                         </div>
-
-                        {{-- Lokasi (Lat/Long) --}}
+    
+                        {{-- [BARU] Lokasi (Lat/Long) dengan Auto Location --}}
                         <div class="row mb-8">
-                            <div class="col-md-6 fv-row">
+                            <div class="col-md-5 fv-row">
                                 <label class="fs-6 fw-semibold mb-2">Latitude</label>
-                                <input type="text" class="form-control form-control-solid" name="latitude" placeholder="-3.xxxx" />
+                                <input type="text" id="add_lat" class="form-control form-control-solid" name="latitude" placeholder="-3.xxxx" />
                             </div>
-                            <div class="col-md-6 fv-row">
+                            <div class="col-md-5 fv-row">
                                 <label class="fs-6 fw-semibold mb-2">Longitude</label>
-                                <input type="text" class="form-control form-control-solid" name="longitude" placeholder="98.xxxx" />
+                                <input type="text" id="add_long" class="form-control form-control-solid" name="longitude" placeholder="98.xxxx" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" id="btn-get-loc-add" class="btn btn-icon btn-light-primary w-100" data-bs-toggle="tooltip" title="Ambil Lokasi Saya">
+                                    <i class="ki-outline ki-geolocation fs-1"></i>
+                                </button>
                             </div>
                         </div>
-
-                        {{-- Wilayah --}}
-                        <input type="hidden" name="kecamatan_id" value="1"> 
-                        <input type="hidden" name="kelurahan_id" value="1">
-
+    
                         {{-- Foto --}}
                         <div class="fv-row mb-8">
-                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">Foto Bukti</label>
-                            <input type="file" class="form-control form-control-solid" name="file_masyarakat" accept=".png, .jpg, .jpeg">
-                            <div class="text-muted fs-7 mt-2">Format: png, jpg, jpeg. Max 2MB.</div>
+                            <label class="d-flex align-items-center fs-6 fw-semibold mb-2">Foto / Video Bukti</label>
+                            <input type="file" class="form-control form-control-solid" name="file_masyarakat" 
+                                   accept=".png, .jpg, .jpeg, .mp4, .mov, .avi, .mkv, .webm">
+                            <div class="text-muted fs-7 mt-2">
+                                Foto: jpg, jpeg, png (Max 2MB). <br>
+                                Video: mp4, mov, avi, mkv, webm (Max 120MB).
+                            </div>
                         </div>
-
+    
                         <div class="text-center">
                             <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
                             <button type="submit" id="btn_simpan_laporan" class="btn btn-primary">
@@ -355,6 +377,69 @@
                 $('#search').on('keyup', debounce(function() {
                     table.search($(this).val()).draw();
                 }, 500));
+
+                // ==========================================
+            // LOGIKA WILAYAH (API OSS) - TAMBAH DATA
+            // ==========================================
+            const KAB_ID_DELISERDANG = '1207'; // ID Deli Serdang
+
+// 1. Load Kecamatan Deli Serdang saat Modal Dibuka
+$('#Modal_Tambah_Data').on('show.bs.modal', function () {
+    if ($('#add_kecamatan option').length <= 1) {
+        $.getJSON(`https://ibnux.github.io/data-indonesia/kecamatan/${KAB_ID_DELISERDANG}.json`, function(res) {
+            $('#add_kecamatan').empty().append('<option value="">-- Pilih Kecamatan --</option>');
+            res.forEach(kec => {
+                // [PERBAIKAN] Gunakan kec.id sebagai value
+                $('#add_kecamatan').append(`<option data-id="${kec.id}" value="${kec.id}">${kec.nama}</option>`);
+            });
+        });
+    }
+});
+
+// 2. Load Kelurahan saat Kecamatan dipilih
+$('#add_kecamatan').on('change', function() {
+    // Ambil ID dari value langsung (karena value sekarang adalah ID)
+    const kecId = $(this).val(); 
+    
+    $('#add_kelurahan').empty().append('<option value="">Loading...</option>');
+    
+    if(kecId) {
+        $.getJSON(`https://ibnux.github.io/data-indonesia/kelurahan/${kecId}.json`, function(res) {
+            $('#add_kelurahan').empty().append('<option value="">-- Pilih Kelurahan --</option>');
+            res.forEach(kel => {
+                // [PERBAIKAN] Gunakan kel.id sebagai value
+                $('#add_kelurahan').append(`<option value="${kel.id}">${kel.nama}</option>`);
+            });
+        });
+    } else {
+        $('#add_kelurahan').empty().append('<option value="">-- Pilih Kelurahan --</option>');
+    }
+});
+
+            // ==========================================
+            // LOGIKA AUTO LOCATION (GPS) - TAMBAH DATA
+            // ==========================================
+            $('#btn-get-loc-add').click(function() {
+                var btn = $(this);
+                if (navigator.geolocation) {
+                    btn.addClass('spinner spinner-primary spinner-center'); // Efek loading (jika pakai theme metronic)
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            $('#add_lat').val(position.coords.latitude);
+                            $('#add_long').val(position.coords.longitude);
+                            btn.removeClass('spinner spinner-primary spinner-center');
+                            Swal.fire("Lokasi Ditemukan", "", "success");
+                        },
+                        function(error) {
+                            btn.removeClass('spinner spinner-primary spinner-center');
+                            Swal.fire("Gagal", "Pastikan GPS aktif dan izin lokasi diberikan.", "error");
+                        }
+                    );
+                } else {
+                    Swal.fire("Error", "Browser tidak mendukung Geolocation.", "error");
+                }
+            });
 
                 // --- TAMBAH DATA ---
                 $('#FormTambahLaporan').on('submit', function(e) {

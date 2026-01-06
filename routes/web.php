@@ -48,6 +48,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 // TAMBAHKAN INI: Route Register
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+Route::post('/register/kirim-otp', [RegisterController::class, 'kirimOtp'])->name('register.send-otp');
 
 
 Route::middleware(['frontend.auth'])->group(function () {
