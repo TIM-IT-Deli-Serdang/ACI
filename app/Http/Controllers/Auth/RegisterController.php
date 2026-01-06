@@ -91,4 +91,60 @@ class RegisterController extends Controller
             return response()->json(['status' => false, 'message' => 'Terjadi kesalahan koneksi ke server.'], 500);
         }
     }
+
+    // Di file: app/Http/Controllers/Auth/RegisterController.php
+
+    public function kirimOtp(Request $request)
+    {
+        // 1. Validasi Input No WA
+        $validator = Validator::make($request->all(), [
+            'no_wa' => 'required|string|min:10|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => 'Nomor WhatsApp tidak valid.'], 422);
+        }
+
+        // 2. Generate OTP (6 Digit)
+        $otp = rand(100000, 999999);
+        $noWa = $request->no_wa;
+
+        // 3. Simpan ke Session Frontend (Agar bisa divalidasi nanti saat submit register)
+        session([
+            'register_otp' => (string) $otp,
+            'register_wa'  => $noWa,
+            'otp_expires'  => now()->addMinutes(5)
+        ]);
+
+        // 4. KIRIM REQUEST KE BACKEND API (Bukan ke WA Gateway langsung)
+        try {
+            // Ambil Base URL API dari fungsi yang sudah ada
+            $baseUrl = $this->baseUrl(); 
+
+            // Tembak Endpoint Backend Anda: /api/pesan/kirim-otp
+            // Payload disesuaikan dengan permintaan KirimPesanController (no_wa, otp)
+            $response = Http::timeout(10)->post($baseUrl . '/api/pesan/kirim-otp', [
+                'no_wa' => $noWa,
+                'otp'   => (string) $otp,
+            ]);
+            
+            // Cek Response dari Backend
+            if ($response->successful() && $response->json()['status'] === true) {
+                return response()->json([
+                    'status' => true, 
+                    'message' => 'OTP berhasil dikirim ke WhatsApp.'
+                ]);
+            } else {
+                // Jika Backend gagal mengirim (misal nomor salah atau server WA down)
+                $msg = $response->json()['message'] ?? 'Gagal mengirim OTP dari server.';
+                return response()->json(['status' => false, 'message' => $msg], 500);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false, 
+                'message' => 'Koneksi ke Backend Gagal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
