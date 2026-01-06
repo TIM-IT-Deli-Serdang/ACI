@@ -293,14 +293,21 @@
                                     </div>
                                 @endif
 
-                                {{-- INPUT FILE VERIFIKASI (Hanya Status 1) --}}
-                                @if($status == 1)
-                                    <div class="mb-5 d-none" id="div_verif_file">
-                                        <label class="required form-label fw-bold">Upload Bukti Verifikasi</label>
-                                        <input type="file" name="verif_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="text-muted fs-7">Wajib diisi jika menyetujui. Max 2MB.</div>
-                                    </div>
-                                @endif
+                               {{-- INPUT FILE VERIFIKASI (Hanya Status 1) --}}
+                               @if($status == 1)
+                               <div class="mb-5 d-none" id="div_verif_file">
+                                   <label class="required form-label fw-bold">Upload Bukti Verifikasi</label>
+                                   
+                                   {{-- Tambahkan accept untuk video --}}
+                                   <input type="file" name="verif_file" class="form-control" 
+                                          accept=".pdf, .jpg, .jpeg, .png, .mp4, .mov, .avi, .mkv, .webm">
+                                   
+                                   <div class="text-muted fs-7 mt-1">
+                                       Wajib diisi jika menyetujui.<br>
+                                       <span class="text-danger">*</span> Foto/PDF Max 2MB. Video Max 120MB.
+                                   </div>
+                               </div>
+                           @endif
 
                                 <div class="mb-10">
                                     <label class="required form-label fw-bold">Catatan / Keterangan</label>
