@@ -49,90 +49,89 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
 Route::post('/register/kirim-otp', [RegisterController::class, 'kirimOtp'])->name('register.send-otp');
+Route::post('/register/verify-otp', [RegisterController::class, 'verifikasiOtp'])->name('register.verify-otp'); // <--- TAMBAHKAN INI
 
 
 Route::middleware(['frontend.auth'])->group(function () {
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-Route::get('/help/log-activity', [LogActivityController::class, 'index'])->name('help.log-activity.index');
-Route::get('/help/log-activity/data', [LogActivityController::class, 'getData'])->name('help.log-activity.data');
-Route::get('/help/log-activity/{id}', [LogActivityController::class, 'show'])->name('help.log-activity.show');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/help/log-activity', [LogActivityController::class, 'index'])->name('help.log-activity.index');
+    Route::get('/help/log-activity/data', [LogActivityController::class, 'getData'])->name('help.log-activity.data');
+    Route::get('/help/log-activity/{id}', [LogActivityController::class, 'show'])->name('help.log-activity.show');
 
 
-Route::get('/my-account', [AccountController::class, 'index'])->name('account.index');
-Route::get('my-account/{id}/avatar', [AccountController::class,'editAvatar'])->name('account.avatar-edit');
-Route::post('my-account/{id}/update-avatar', [AccountController::class,'updateAvatar'])->name('account.avatar-update');
+    Route::get('/my-account', [AccountController::class, 'index'])->name('account.index');
+    Route::get('my-account/{id}/avatar', [AccountController::class, 'editAvatar'])->name('account.avatar-edit');
+    Route::post('my-account/{id}/update-avatar', [AccountController::class, 'updateAvatar'])->name('account.avatar-update');
 
-Route::resource('my-profile', ProfileController::class);
-Route::get('/my-activity', [ActivityController::class, 'index'])->name('my-activity.index');
-Route::get('my-activity/data', [ActivityController::class, 'getData'])->name('my-activity.data');
-Route::get('/my-login-session', [LoginSessionController::class, 'index'])->name('my-login-session.index');
-Route::get('my-login-session/data', [LoginSessionController::class, 'getData'])->name('my-login-session.data');
-Route::resource('my-security', SecurityController::class);
-
-
-
-//MASTER WILAYAH
-Route::get('/master/wilayah-provinsi', [WilayahProvinsiController::class, 'index'])->name('provinsi.index');
-Route::get('/master/wilayah-provinsi/data', [WilayahProvinsiController::class, 'getData'])->name('provinsi.data');
-
-Route::get('/master/wilayah-kabupaten', [WilayahKabupatenController::class, 'index'])->name('kabupaten.index');
-Route::get('/master/wilayah-kabupaten/data', [WilayahKabupatenController::class, 'getData'])->name('kabupaten.data');
-
-Route::get('/master/wilayah-kecamatan', [WilayahKecamatanController::class, 'index'])->name('kecamatan.index');
-Route::get('/master/wilayah-kecamatan/data', [WilayahKecamatanController::class, 'getData'])->name('kecamatan.data');
-
-Route::get('/master/wilayah-desa', [WilayahDesaController::class, 'index'])->name('desa.index');
-Route::get('/master/wilayah-desa/data', [WilayahDesaController::class, 'getData'])->name('desa.data');
+    Route::resource('my-profile', ProfileController::class);
+    Route::get('/my-activity', [ActivityController::class, 'index'])->name('my-activity.index');
+    Route::get('my-activity/data', [ActivityController::class, 'getData'])->name('my-activity.data');
+    Route::get('/my-login-session', [LoginSessionController::class, 'index'])->name('my-login-session.index');
+    Route::get('my-login-session/data', [LoginSessionController::class, 'getData'])->name('my-login-session.data');
+    Route::resource('my-security', SecurityController::class);
 
 
-Route::prefix('master')->group(function () {
-    Route::get('/skpd/data', [SkpdController::class, 'getData'])->name('skpd.data');
-    Route::resource('/skpd', SkpdController::class)->names('skpd');
-    Route::get('/upt/data', [UptController::class, 'getData'])->name('upt.data');
-    Route::resource('/upt', UptController::class)->names('upt');
-    Route::get('/kategori/data', [KategoriLaporanController::class, 'getData'])->name('kategori.data');
-    Route::resource('/kategori', KategoriLaporanController::class)->names('kategori');
+
+    //MASTER WILAYAH
+    Route::get('/master/wilayah-provinsi', [WilayahProvinsiController::class, 'index'])->name('provinsi.index');
+    Route::get('/master/wilayah-provinsi/data', [WilayahProvinsiController::class, 'getData'])->name('provinsi.data');
+
+    Route::get('/master/wilayah-kabupaten', [WilayahKabupatenController::class, 'index'])->name('kabupaten.index');
+    Route::get('/master/wilayah-kabupaten/data', [WilayahKabupatenController::class, 'getData'])->name('kabupaten.data');
+
+    Route::get('/master/wilayah-kecamatan', [WilayahKecamatanController::class, 'index'])->name('kecamatan.index');
+    Route::get('/master/wilayah-kecamatan/data', [WilayahKecamatanController::class, 'getData'])->name('kecamatan.data');
+
+    Route::get('/master/wilayah-desa', [WilayahDesaController::class, 'index'])->name('desa.index');
+    Route::get('/master/wilayah-desa/data', [WilayahDesaController::class, 'getData'])->name('desa.data');
+
+
+    Route::prefix('master')->group(function () {
+        Route::get('/skpd/data', [SkpdController::class, 'getData'])->name('skpd.data');
+        Route::resource('/skpd', SkpdController::class)->names('skpd');
+        Route::get('/upt/data', [UptController::class, 'getData'])->name('upt.data');
+        Route::resource('/upt', UptController::class)->names('upt');
+        Route::get('/kategori/data', [KategoriLaporanController::class, 'getData'])->name('kategori.data');
+        Route::resource('/kategori', KategoriLaporanController::class)->names('kategori');
+    });
+
+    Route::prefix('user-management')->group(function () {
+        Route::get('/user/data', [UserController::class, 'getData'])->name('user.data');
+        // 2. Select2 UPT (Harus DI ATAS Resource agar tidak dianggap sebagai ID)
+        Route::get('/user/select-upt', [UserController::class, 'selectUpt'])->name('user.select-upt');
+        Route::resource('/user', UserController::class)->names('user');
+    });
+
+    Route::prefix('user-management')->group(function () {
+        Route::get('/role/data', [RoleController::class, 'getData'])->name('role.data');
+        Route::get('/role/permissions', [RoleController::class, 'getPermissions'])->name('role.permissions');
+        Route::get('/role/select', [RoleController::class, 'select'])->name('role.select');
+        Route::resource('/role', RoleController::class)->names('role');
+    });
+
+    Route::prefix('laporan')->group(function () {
+        Route::get('/laporan/data', [LaporanWargaController::class, 'getData'])->name('laporan.data');
+        // Halaman Form Validasi
+        Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
+
+        // ACTION SUBMIT VALIDASI (Tambahkan ini)
+        Route::post('/laporan/{id}/validation', [LaporanWargaController::class, 'processValidation'])->name('laporan.process-validation');
+        Route::resource('/laporan', LaporanWargaController::class)->names('laporan');
+    });
+
+    Route::prefix('rekap-laporan')->group(function () {
+        // Route untuk mengambil data JSON (Statistik + Tabel)
+        Route::get('/rekap/get-data', [RekapLaporanController::class, 'getRekapData'])->name('rekap.get-data');
+
+        // Route untuk Export PDF
+        Route::get('/rekap/export', [RekapLaporanController::class, 'exportPdf'])->name('rekap.export');
+
+        // Resource Route
+        Route::resource('/rekap', RekapLaporanController::class)->names('rekap');
+    });
 });
-
-Route::prefix('user-management')->group(function () {
-    Route::get('/user/data', [UserController::class, 'getData'])->name('user.data');
-    // 2. Select2 UPT (Harus DI ATAS Resource agar tidak dianggap sebagai ID)
-    Route::get('/user/select-upt', [UserController::class, 'selectUpt'])->name('user.select-upt');
-    Route::resource('/user', UserController::class)->names('user');
-});
-
-Route::prefix('user-management')->group(function () {
-    Route::get('/role/data', [RoleController::class, 'getData'])->name('role.data');
-    Route::get('/role/permissions', [RoleController::class, 'getPermissions'])->name('role.permissions');
-    Route::get('/role/select', [RoleController::class, 'select'])->name('role.select');
-    Route::resource('/role', RoleController::class)->names('role');
-});
-
-Route::prefix('laporan')->group(function () {
-    Route::get('/laporan/data', [LaporanWargaController::class, 'getData'])->name('laporan.data');
-// Halaman Form Validasi
-Route::get('/laporan/{id}/validation', [LaporanWargaController::class, 'validation'])->name('laporan.validation');
-    
-// ACTION SUBMIT VALIDASI (Tambahkan ini)
-Route::post('/laporan/{id}/validation', [LaporanWargaController::class, 'processValidation'])->name('laporan.process-validation');
-    Route::resource('/laporan', LaporanWargaController::class)->names('laporan');
-});
-
-Route::prefix('rekap-laporan')->group(function () {
-    // Route untuk mengambil data JSON (Statistik + Tabel)
-    Route::get('/rekap/get-data', [RekapLaporanController::class, 'getRekapData'])->name('rekap.get-data');
-    
-    // Route untuk Export PDF
-    Route::get('/rekap/export', [RekapLaporanController::class, 'exportPdf'])->name('rekap.export');
-    
-    // Resource Route
-    Route::resource('/rekap', RekapLaporanController::class)->names('rekap');
-});
-
-});
-
