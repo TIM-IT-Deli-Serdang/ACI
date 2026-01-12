@@ -60,12 +60,12 @@
                                             $val = (int)($rekapStatus[$key] ?? 0);
                                             $meta = $statusMeta[$key] ?? ['icon' => 'bi-circle', 'bg' => 'bg-secondary'];
                                         @endphp
-                                        <div class="col-6 col-md-4 col-lg-2">
+                                        <div class="col-6 col-md-6 col-lg-4">
                                             <div class="card card-flush border border-gray-300 h-100">
                                                 <div class="card-body d-flex align-items-center gap-3">
                                                     <div class="rounded-circle text-white d-flex align-items-center justify-content-center {{ $meta['bg'] }}"
                                                          style="width:44px;height:44px;">
-                                                        <i class="bi {{ $meta['icon'] }}" style="font-size:18px;"></i>
+                                                        <i class="bi {{ $meta['icon'] }}" style="font-size:18px;color:white;"></i>
                                                     </div>
                                                     <div class="flex-grow-1">
                                                         <div class="text-muted small">{{ $label }}</div>
