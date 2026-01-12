@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Session;
 
 class LaporanWargaController extends Controller
 {
-     /**
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -20,7 +20,7 @@ class LaporanWargaController extends Controller
     }
 
 
-public function getData(Request $request)
+    public function getData(Request $request)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
@@ -71,7 +71,7 @@ public function getData(Request $request)
         // RETURN DATA KE DATATABLES
         return response()->json($response->json());
     }
-   
+
 
 
 
@@ -94,7 +94,7 @@ public function getData(Request $request)
     //         // --- PERBAIKAN DI SINI: ATTACH FILE ---
     //         if ($request->hasFile('file_masyarakat')) {
     //             $file = $request->file('file_masyarakat');
-                
+
     //             // Lampirkan file ke request
     //             // Parameter: (nama_field, isi_file, nama_asli_file)
     //             $http->attach(
@@ -116,7 +116,7 @@ public function getData(Request $request)
     //     }
 
     //     // ... (Sisa kode validasi response sama seperti sebelumnya) ...
-        
+
     //     if ($response->status() === 401) {
     //         return response()->json(['status' => false, 'message' => 'Token expired.'], 401);
     //     }
@@ -159,7 +159,7 @@ public function getData(Request $request)
             'alamat'              => 'required|string',
             'kecamatan_id'        => 'required', // sesuaikan validasi tipe datanya
             'kelurahan_id'        => 'required',
-            
+
             // Validasi File Custom Closure
             'file_masyarakat' => [
                 'nullable',
@@ -173,12 +173,12 @@ public function getData(Request $request)
 
                     if (in_array($ext, $imageExt)) {
                         // Maksimal 2MB untuk gambar (2 * 1024 * 1024)
-                        if ($size > 2097152) { 
+                        if ($size > 2097152) {
                             $fail('Ukuran gambar maksimal 2MB.');
                         }
                     } elseif (in_array($ext, $videoExt)) {
                         // Maksimal 120MB untuk video (120 * 1024 * 1024)
-                        if ($size > 125829120) { 
+                        if ($size > 125829120) {
                             $fail('Ukuran video maksimal 120MB.');
                         }
                     } else {
@@ -204,13 +204,13 @@ public function getData(Request $request)
             // Attach File jika ada
             if ($request->hasFile('file_masyarakat')) {
                 $file = $request->file('file_masyarakat');
-                
+
                 // Gunakan fopen agar hemat memori saat upload file besar (stream)
                 $stream = fopen($file->getRealPath(), 'r');
-                
+
                 $http->attach(
-                    'file_masyarakat', 
-                    $stream, 
+                    'file_masyarakat',
+                    $stream,
                     $file->getClientOriginalName()
                 );
             }
@@ -218,7 +218,6 @@ public function getData(Request $request)
             // Kirim data text lainnya (kecuali file karena sudah di-attach)
             // Tambahkan _method POST explicit jika perlu, tapi default post() sudah POST
             $response = $http->post($baseUrl . '/api/laporan', $request->except('file_masyarakat'));
-
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => false,
@@ -413,7 +412,7 @@ public function getData(Request $request)
             'alamat'              => 'required|string',
             'kecamatan_id'        => 'required',
             'kelurahan_id'        => 'required',
-            
+
             // Validasi File Custom Closure
             'file_masyarakat' => [
                 'nullable',
@@ -455,13 +454,13 @@ public function getData(Request $request)
             // 2. ATTACH FILE JIKA ADA
             if ($request->hasFile('file_masyarakat')) {
                 $file = $request->file('file_masyarakat');
-                
+
                 // Gunakan stream
                 $stream = fopen($file->getRealPath(), 'r');
 
                 $http->attach(
-                    'file_masyarakat', 
-                    $stream, 
+                    'file_masyarakat',
+                    $stream,
                     $file->getClientOriginalName()
                 );
             }
@@ -471,7 +470,6 @@ public function getData(Request $request)
             $dataToSend = $request->except(['file_masyarakat', '_method']);
 
             $response = $http->post($baseUrl . '/api/laporan/' . $id, $dataToSend);
-
         } catch (\Throwable $e) {
             return response()->json(['status' => false, 'message' => 'Gagal menghubungi server (Timeout/Connection): ' . $e->getMessage()], 500);
         }
@@ -553,10 +551,10 @@ public function getData(Request $request)
         // 2. Cek Role User
         $sessionUser = Session::get('user');
         if (!$sessionUser) return redirect()->route('login');
-        
+
         $userId = is_array($sessionUser) ? $sessionUser['id'] : $sessionUser->id;
         $respUser = Http::withToken($token)->get($baseUrl . '/api/users/' . $userId);
-        
+
         $roleNames = [];
         if ($respUser->ok()) {
             $userData = $respUser->json()['data'] ?? [];
@@ -572,20 +570,20 @@ public function getData(Request $request)
         // 3. [UPDATE] Ambil List UPT
         // Ambil jika Status = 0 (untuk dropdown) ATAU jika upt_id sudah terisi (untuk tampilan riwayat)
         $listUpt = [];
-        $shouldFetchUpt = ($dataLaporan['status_laporan'] == 0 && ($isSuperAdmin || $isSda)) 
-                          || !empty($dataLaporan['upt_id']);
+        $shouldFetchUpt = ($dataLaporan['status_laporan'] == 0 && ($isSuperAdmin || $isSda))
+            || !empty($dataLaporan['upt_id']);
 
         if ($shouldFetchUpt) {
             try {
                 // Gunakan endpoint DataTables dengan length besar agar dapat semua
                 $respUpt = Http::withToken($token)->get($baseUrl . '/api/upt', [
-                    'length' => 1000, 
+                    'length' => 1000,
                     'start'  => 0
                 ]);
 
                 if ($respUpt->ok()) {
                     $jsonUpt = $respUpt->json();
-                    $listUpt = $jsonUpt['data'] ?? []; 
+                    $listUpt = $jsonUpt['data'] ?? [];
                 }
             } catch (\Exception $e) {
                 // Silent fail
@@ -605,10 +603,10 @@ public function getData(Request $request)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
-        
+
         if (!$token) return redirect()->route('login');
 
-        $action = $request->action; 
+        $action = $request->action;
         $currentStatus = (int) $request->current_status;
         $keterangan = $request->keterangan;
 
@@ -616,7 +614,7 @@ public function getData(Request $request)
         // 1. VALIDASI KHUSUS TAHAP VERIFIKASI (1 -> 2)
         // ==========================================
         if ($currentStatus == 1 && $action === 'next') {
-            
+
             $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
                 'keterangan' => 'required|string',
                 // VALIDASI FILE CUSTOM (GAMBAR vs VIDEO)
@@ -626,7 +624,7 @@ public function getData(Request $request)
                     function ($attribute, $value, $fail) {
                         $imageExt = ['jpg', 'jpeg', 'png'];
                         $videoExt = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
-                        $pdfExt   = ['pdf']; 
+                        $pdfExt   = ['pdf'];
 
                         $ext = strtolower($value->getClientOriginalExtension());
                         $size = $value->getSize();
@@ -652,34 +650,59 @@ public function getData(Request $request)
             }
         }
 
+        if ($currentStatus == 3 && $action === 'next') {
+
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'keterangan' => 'required|string',
+                // VALIDASI FILE CUSTOM (GAMBAR vs VIDEO)
+                'selesai_file' => [
+                    'required', // Wajib ada file bukti saat verifikasi disetujui
+                    'file',
+                    function ($attribute, $value, $fail) {
+                        $imageExt = ['jpg', 'jpeg', 'png'];
+
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        $size = $value->getSize();
+
+                        if (in_array($ext, $imageExt)) {
+                            // Gambar Max 2MB
+                            if ($size > 2097152) $fail('Ukuran gambar maksimal 2MB.');
+                        } else {
+                            $fail('File harus berupa Gambar, PDF, atau Video yang valid.');
+                        }
+                    }
+                ],
+            ]);
+
+            if ($validator->fails()) {
+                return back()->with('error', $validator->errors()->first())->withInput();
+            }
+        }
+
         // ==========================================
         // 2. SIAPKAN PAYLOAD STATUS
         // ==========================================
         $payload = [];
-        
+
         if ($action === 'reject') {
             $payload['status_laporan'] = 5;
             if ($currentStatus == 0) $payload['penerima_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 1) $payload['verif_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 2) $payload['penanganan_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 3) $payload['selesai_keterangan_tolak'] = $keterangan;
-
         } else {
             if ($currentStatus == 0) {
                 $payload['status_laporan'] = 1;
                 $payload['penerima_keterangan'] = $keterangan;
-                $payload['upt_id'] = $request->upt_id; 
-            } 
-            elseif ($currentStatus == 1) {
+                $payload['upt_id'] = $request->upt_id;
+            } elseif ($currentStatus == 1) {
                 $payload['status_laporan'] = 2;
                 $payload['verif_keterangan'] = $keterangan;
                 // File dikirim via attach di bawah
-            }
-            elseif ($currentStatus == 2) {
+            } elseif ($currentStatus == 2) {
                 $payload['status_laporan'] = 3;
                 $payload['penanganan_keterangan'] = $keterangan;
-            }
-            elseif ($currentStatus == 3) {
+            } elseif ($currentStatus == 3) {
                 $payload['status_laporan'] = 4;
                 $payload['selesai_keterangan'] = $keterangan;
             }
@@ -695,13 +718,24 @@ public function getData(Request $request)
             // Upload File Verifikasi (Khusus Status 1 -> 2)
             if ($currentStatus == 1 && $action === 'next' && $request->hasFile('verif_file')) {
                 $file = $request->file('verif_file');
-                
+
                 // Gunakan stream fopen agar hemat memori saat upload file besar
                 $stream = fopen($file->getRealPath(), 'r');
 
                 $http->attach(
-                    'verif_file', 
-                    $stream, 
+                    'verif_file',
+                    $stream,
+                    $file->getClientOriginalName()
+                );
+            }
+
+            if ($currentStatus == 3 && $action === 'next' && $request->hasFile('selesai_file')) {
+                $file = $request->file('selesai_file');
+                $stream = fopen($file->getRealPath(), 'r'); // Buka stream file
+
+                $http->attach(
+                    'selesai_file',   // Nama field sesuai API Backend
+                    $stream,
                     $file->getClientOriginalName()
                 );
             }
@@ -720,10 +754,8 @@ public function getData(Request $request)
                 }
                 return back()->with('error', $msg)->withInput();
             }
-
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan server: ' . $e->getMessage());
         }
     }
-
 }
