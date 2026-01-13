@@ -1,3 +1,8 @@
+
+@php
+    // Konfigurasi Domain API
+    $apiDomain = 'https://apiaci-deliserdangsehat.deliserdangkab.go.id';
+@endphp
 <input type="hidden" name="hidden_id" id="hidden_id" value="{{ $data['id'] ?? '' }}" />
 
 {{-- KATEGORI LAPORAN --}}
@@ -20,38 +25,59 @@
     <textarea name="deskripsi" class="form-control form-control-solid" rows="3" placeholder="Jelaskan detail kerusakan...">{{ $data['deskripsi'] ?? '' }}</textarea>
 </div>
 
-{{-- [BARU] WILAYAH DELI SERDANG (EDIT) --}}
+{{-- WILAYAH (API DEPENDENT DROPDOWN) --}}
 <div class="row mb-7">
+    {{-- KECAMATAN --}}
     <div class="col-md-6 fv-row">
-        <label class="required fs-6 fw-semibold mb-2">Kecamatan</label>
-        {{-- Simpan nilai lama di data-old --}}
-        <select id="edit_kecamatan" name="kecamatan_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Pilih Kecamatan" data-old="{{ $data['kecamatan_id'] ?? '' }}">
-            <option></option>
+        <label class="required fw-semibold fs-7 mb-2">Kecamatan</label>
+        {{-- Kita simpan ID lama di data-selected agar JS bisa membacanya --}}
+        <select
+            name="wilayah_kecamatan_id"
+            id="kecamatanEdit"
+            class="form-select form-select-solid"
+            data-control="select2"
+            data-placeholder="Pilih Kecamatan"
+            data-dropdown-parent="#Modal_Edit_Data"
+            data-selected="{{ $data['wilayah_kecamatan_id'] ?? '' }}"
+            required>
+            <option value="">Memuat...</option>
         </select>
     </div>
+
+    {{-- KELURAHAN / DESA --}}
     <div class="col-md-6 fv-row">
-        <label class="required fs-6 fw-semibold mb-2">Kelurahan/Desa</label>
-        <select id="edit_kelurahan" name="kelurahan_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Pilih Kelurahan" data-old="{{ $data['kelurahan_id'] ?? '' }}">
-            <option></option>
+        <label class="required fw-semibold fs-7 mb-2">Desa / Kelurahan</label>
+        {{-- Kita simpan ID lama di data-selected agar JS bisa membacanya --}}
+        <select
+            name="wilayah_kelurahan_id"
+            id="kelurahanEdit"
+            class="form-select form-select-solid"
+            data-control="select2"
+            data-placeholder="Pilih Desa"
+            data-dropdown-parent="#Modal_Edit_Data"
+            data-selected="{{ $data['wilayah_kelurahan_id'] ?? '' }}"
+            required>
+            <option value="">-- Pilih Kecamatan Dulu --</option>
         </select>
     </div>
 </div>
+
 
 {{-- ALAMAT --}}
 <div class="fv-row mb-7">
     <label class="required fw-semibold fs-7 mb-2">Alamat Lengkap</label>
-    <textarea name="alamat" class="form-control form-control-solid" rows="2" placeholder="Nama Jalan, Desa, Kecamatan...">{{ $data['alamat'] ?? '' }}</textarea>
+    <textarea name="alamat" class="form-control form-control-solid" rows="2" placeholder="Nama Jalan, Dusun, Patokan...">{{ $data['alamat'] ?? '' }}</textarea>
 </div>
 
-{{-- [BARU] LOKASI LAT/LONG (EDIT) --}}
+{{-- LOKASI LAT/LONG --}}
 <div class="row mb-7">
     <div class="col-md-5 fv-row">
         <label class="fw-semibold fs-7 mb-2">Latitude</label>
-        <input type="text" id="edit_lat" name="latitude" class="form-control form-control-solid" placeholder="-3.xxxx" value="{{ $data['latitude'] ?? '' }}" />
+        <input type="text" id="edit_lat" name="latitude" class="form-control form-control-solid" placeholder="-3.xxxx" value="{{ $data['latitude'] ?? '' }}" readonly />
     </div>
     <div class="col-md-5 fv-row">
         <label class="fw-semibold fs-7 mb-2">Longitude</label>
-        <input type="text" id="edit_long" name="longitude" class="form-control form-control-solid" placeholder="98.xxxx" value="{{ $data['longitude'] ?? '' }}" />
+        <input type="text" id="edit_long" name="longitude" class="form-control form-control-solid" placeholder="98.xxxx" value="{{ $data['longitude'] ?? '' }}" readonly />
     </div>
     <div class="col-md-2 d-flex align-items-end">
         <button type="button" id="btn-get-loc-edit" class="btn btn-icon btn-light-primary w-100" title="Ambil Lokasi Saya">
@@ -65,32 +91,56 @@
     <label class="fw-semibold fs-7 mb-2">Foto / Video Bukti</label>
     
     @if (!empty($data['file_masyarakat']))
-        @php
-            $fileUrl = 'http://10.0.22.97/storage/laporan/masyarakat/' . $data['file_masyarakat'];
-            $ext = pathinfo($data['file_masyarakat'], PATHINFO_EXTENSION);
-            $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-            $isVideo = in_array(strtolower($ext), ['mp4', 'mov', 'avi', 'mkv', 'webm']);
-        @endphp
+            @php
+                $fileName = $data['file_masyarakat'];
+                $fileId = $data['id'] ?? 'unknown';
+                // URL Utama (Storage)
+                $urlStorage = $apiDomain . '/storage/laporan/masyarakat/'. $fileId . '/' . $fileName;
+                // URL Cadangan (Public)
+                $urlPublic  = $apiDomain . '/laporan/masyarakat/'. $fileId . '/' . $fileName;
 
-        <div class="mb-3 border rounded p-2 bg-light text-center">
-            @if($isImage)
-                <div class="symbol symbol-100px symbol-2by3 me-4">
-                    <div class="symbol-label" style="background-image: url('{{ $fileUrl }}')"></div>
-                </div>
-                <div class="text-muted fs-7 mt-1">Foto saat ini.</div>
-            @elseif($isVideo)
-                <video src="{{ $fileUrl }}" controls class="mw-100 rounded" style="max-height: 150px;"></video>
-                <div class="text-muted fs-7 mt-1">Video saat ini.</div>
-            @else
-                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-sm btn-light-primary">
-                    <i class="ki-outline ki-file fs-2"></i> Lihat File Saat Ini
-                </a>
-            @endif
-        </div>
-    @endif
+                $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+                $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            @endphp
+
+            <div class="mb-3 border rounded p-3 bg-light text-center position-relative">
+                @if($isImage)
+                    {{-- Container Gambar --}}
+                    <div id="img-container-{{ $data['id'] }}" class="d-block">
+                        <img src="{{ $urlStorage }}" 
+                             class="mw-100 rounded border shadow-sm" 
+                             style="max-height: 150px; object-fit: contain;"
+                             onerror="
+                                // Jika gagal load dari storage, coba public
+                                if (this.src != '{{ $urlPublic }}') {
+                                    this.src = '{{ $urlPublic }}';
+                                } else {
+                                    // Jika public juga gagal, sembunyikan gambar dan tampilkan pesan error
+                                    this.style.display = 'none';
+                                    document.getElementById('error-msg-{{ $data['id'] }}').style.display = 'block';
+                                }
+                             ">
+                    </div>
+
+                    {{-- Pesan Error (Hidden by default) --}}
+                    <div id="error-msg-{{ $data['id'] }}" style="display:none;" class="py-3">
+                        <i class="ki-outline ki-file-deleted fs-1 text-danger mb-2"></i>
+                        <div class="text-danger fw-bold fs-7">File fisik tidak ditemukan di server.</div>
+                        <div class="text-muted fs-8">Nama file: {{ $fileName }}</div>
+                        <div class="mt-2 text-primary fs-8 fst-italic">Silakan upload ulang gambar baru di bawah.</div>
+                    </div>
+
+                @else
+                    {{-- Untuk Video / File Lain --}}
+                    <a href="{{ $urlStorage }}" target="_blank" class="btn btn-sm btn-light-primary">
+                        <i class="ki-outline ki-file-down fs-2"></i> Cek File ({{ $ext }})
+                    </a>
+                @endif
+            </div>
+        @endif
 
     <input type="file" name="file_masyarakat" class="form-control form-control-solid" 
-           accept=".png, .jpg, .jpeg, .mp4, .mov, .avi, .mkv, .webm">
+           accept="image/,video/">
     <div class="text-muted fs-7 mt-2">
         Biarkan kosong jika tidak ingin mengubah file.<br>
         Max: Foto 2MB, Video 120MB.
@@ -99,69 +149,58 @@
 
 <script>
     $(document).ready(function() {
-        // Re-Init Select2
-        $('#FormEditModalID select[data-control="select2"]').select2({
+        // 1. Re-Init Select2 (Wajib karena element baru masuk DOM)
+        // Kita init spesifik agar tidak bentrok
+        $('#kecamatanEdit, #kelurahanEdit').select2({
+            dropdownParent: $('#Modal_Edit_Data'),
+            width: '100%'
+        });
+
+        $('#FormEditModalID select[name="kategori_laporan_id"]').select2({
             dropdownParent: $('#Modal_Edit_Data'),
             minimumResultsForSearch: Infinity
         });
 
-        // === LOGIKA WILAYAH EDIT (DELI SERDANG ID 1207) ===
-        const KAB_ID = '1207';
-        // Pastikan controller mengirim ID, bukan nama
-        const oldKec = $('#edit_kecamatan').data('old'); 
-        const oldKel = $('#edit_kelurahan').data('old');
+        // 2. LOGIKA LOAD DATA API (Menggunakan Fungsi Global dari Index)
+        // Ambil data-selected yang kita taruh di HTML tadi
+        const selectedKecId = $('#kecamatanEdit').data('selected');
+        const selectedKelId = $('#kelurahanEdit').data('selected');
 
-        // 1. Load Kecamatan
-        $.getJSON(`https://ibnux.github.io/data-indonesia/kecamatan/${KAB_ID}.json`, function(res) {
-            $('#edit_kecamatan').empty().append('<option value="">-- Pilih Kecamatan --</option>');
-            res.forEach(kec => {
-                // [PERBAIKAN] Bandingkan ID dengan ID
-                // Pastikan oldKec dan kec.id tipe datanya sama (string/int) pakai ==
-                const isSelected = (kec.id == oldKec) ? 'selected' : '';
-                
-                // Set value ke ID
-                $('#edit_kecamatan').append(`<option data-id="${kec.id}" value="${kec.id}" ${isSelected}>${kec.nama}</option>`);
-            });
+        // A. Panggil API Kecamatan
+        // Fungsi loadKecamatan(selector, selectedId) ada di index.blade.php
+        if (typeof loadKecamatan === "function") {
+            loadKecamatan('#kecamatanEdit', selectedKecId);
+        } else {
+            console.error("Fungsi loadKecamatan belum dimuat di parent page.");
+        }
 
-            // Jika ada oldKec (ID), trigger load kelurahan
-            if(oldKec) {
-                loadKelurahan(oldKec, oldKel);
+        // B. Jika sudah ada kecamatan terpilih, Panggil API Desa
+        if (selectedKecId && typeof loadKelurahan === "function") {
+            loadKelurahan(selectedKecId, '#kelurahanEdit', selectedKelId);
+        }
+
+        // C. Event Listener: Jika user mengubah Kecamatan di form Edit
+        $('#kecamatanEdit').on('change', function() {
+            const newKecId = $(this).val();
+            if (typeof loadKelurahan === "function") {
+                loadKelurahan(newKecId, '#kelurahanEdit');
             }
         });
 
-        // 2. Fungsi Load Kelurahan
-        function loadKelurahan(kecId, selectedKel = null) {
-            $('#edit_kelurahan').empty().append('<option value="">Loading...</option>');
-            $.getJSON(`https://ibnux.github.io/data-indonesia/kelurahan/${kecId}.json`, function(res) {
-                $('#edit_kelurahan').empty().append('<option value="">-- Pilih Kelurahan --</option>');
-                res.forEach(kel => {
-                    // [PERBAIKAN] Bandingkan ID dengan ID
-                    const isSelected = (kel.id == selectedKel) ? 'selected' : '';
-                    // Set value ke ID
-                    $('#edit_kelurahan').append(`<option value="${kel.id}" ${isSelected}>${kel.nama}</option>`);
-                });
-            });
-        }
-
-        // 3. Event Change Kecamatan
-        $('#edit_kecamatan').on('change', function() {
-            // Ambil value langsung karena value sudah ID
-            const kecId = $(this).val();
-            if(kecId) loadKelurahan(kecId);
-            else $('#edit_kelurahan').empty().append('<option value="">-- Pilih Kelurahan --</option>');
-        });
-
-        // === LOGIKA AUTO LOCATION EDIT ===
+        // 3. LOGIKA GPS EDIT
         $('#btn-get-loc-edit').click(function() {
             var btn = $(this);
             if (navigator.geolocation) {
+                btn.addClass('spinner spinner-primary spinner-center');
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
                         $('#edit_lat').val(position.coords.latitude);
                         $('#edit_long').val(position.coords.longitude);
+                        btn.removeClass('spinner spinner-primary spinner-center');
                         Swal.fire("Lokasi Diperbarui", "", "success");
                     },
                     function(error) {
+                        btn.removeClass('spinner spinner-primary spinner-center');
                         Swal.fire("Gagal", "Pastikan GPS aktif.", "error");
                     }
                 );
