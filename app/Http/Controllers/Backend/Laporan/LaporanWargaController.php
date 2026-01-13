@@ -6,183 +6,95 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class LaporanWargaController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Halaman Utama (List Laporan)
      */
     public function index(Request $request)
     {
-        return view('backend.laporan.index');
+        // Jika Anda ingin menampilkan Dashboard Stats (seperti di gambar)
+        // Anda perlu mengambil datanya dari API di sini dan mengirimnya ke view
+        // Contoh:
+        // $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
+        // $token   = Session::get('auth_token');
+        // $stats   = Http::withToken($token)->get($baseUrl . '/api/laporan/stats')->json();
+        
+        return view('backend.laporan.index'); 
     }
 
-
+    /**
+     * Data untuk DataTables (AJAX)
+     */
     public function getData(Request $request)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
 
         if (!$token) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Anda belum login.'
-            ], 401);
+            return response()->json(['status' => false, 'message' => 'Anda belum login.'], 401);
         }
 
         try {
-            // forward parameter datatables (draw, start, length, search)
+            // Forward parameter DataTables ke API Backend
             $response = Http::withToken($token)
                 ->get($baseUrl . '/api/laporan/datatables', $request->all());
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Tidak dapat menghubungi server backend.'
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
         }
 
-        // backend error: unauthorized
         if ($response->status() === 401) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Token tidak valid atau sudah expired.'
-            ], 401);
+            return response()->json(['status' => false, 'message' => 'Sesi kedaluwarsa.'], 401);
         }
 
-        // backend validation
-        if ($response->status() === 422) {
-            return response()->json([
-                'status' => false,
-                'message' => $response->json()['message'] ?? 'Validation error',
-                'errors' => $response->json()['errors'] ?? []
-            ], 422);
-        }
-
-        // backend error lainnya
         if (!$response->ok()) {
             return response()->json([
-                'status' => false,
-                'message' => $response->json()['message'] ?? 'Gagal mengambil data Laporan.'
+                'status' => false, 
+                'message' => $response->json()['message'] ?? 'Gagal mengambil data.'
             ], $response->status());
         }
 
-        // RETURN DATA KE DATATABLES
         return response()->json($response->json());
     }
 
-
-
-
-    // public function store(Request $request)
-    // {
-    //     $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
-    //     $token   = Session::get('auth_token');
-
-    //     if (!$token) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Anda belum login.'
-    //         ], 401);
-    //     }
-
-    //     try {
-    //         // Inisialisasi HTTP Client dengan Token
-    //         $http = Http::withToken($token);
-
-    //         // --- PERBAIKAN DI SINI: ATTACH FILE ---
-    //         if ($request->hasFile('file_masyarakat')) {
-    //             $file = $request->file('file_masyarakat');
-
-    //             // Lampirkan file ke request
-    //             // Parameter: (nama_field, isi_file, nama_asli_file)
-    //             $http->attach(
-    //                 'file_masyarakat', 
-    //                 file_get_contents($file->getRealPath()), 
-    //                 $file->getClientOriginalName()
-    //             );
-    //         }
-
-    //         // Kirim sisa data (text inputs) menggunakan POST
-    //         // Kita gunakan $request->except('file_masyarakat') agar file tidak dikirim double (sekali via attach, sekali via post body)
-    //         $response = $http->post($baseUrl . '/api/laporan', $request->except('file_masyarakat'));
-
-    //     } catch (\Throwable $e) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Tidak dapat menghubungi server backend: ' . $e->getMessage()
-    //         ], 500);
-    //     }
-
-    //     // ... (Sisa kode validasi response sama seperti sebelumnya) ...
-
-    //     if ($response->status() === 401) {
-    //         return response()->json(['status' => false, 'message' => 'Token expired.'], 401);
-    //     }
-
-    //     if ($response->status() === 422) {
-    //         return response()->json([
-    //             'status'  => 422,
-    //             'message' => $response->json()['message'] ?? 'Validation Error',
-    //             'errors'  => $response->json()['errors'] ?? []
-    //         ], 422);
-    //     }
-
-    //     if (!$response->ok()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $response->json()['message'] ?? 'Gagal menyimpan data.'
-    //         ], $response->status());
-    //     }
-
-    //     return response()->json($response->json(), $response->status());
-    // }
-
+    /**
+     * Simpan Laporan Baru
+     */
     public function store(Request $request)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
 
         if (!$token) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Anda belum login.'
-            ], 401);
+            return response()->json(['status' => false, 'message' => 'Anda belum login.'], 401);
         }
 
-        // 1. VALIDASI INPUT (Validasi Ukuran File Gambar vs Video)
-        // Kita validasi di sini dulu agar tidak membuang bandwidth upload ke API jika file salah
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'kategori_laporan_id' => 'required|in:1,2,3,4,5',
-            'deskripsi'           => 'required|string',
-            'alamat'              => 'required|string',
-            'kecamatan_id'        => 'required', // sesuaikan validasi tipe datanya
-            'kelurahan_id'        => 'required',
-
-            // Validasi File Custom Closure
+        // 1. VALIDASI INPUT LOKAL (Gunakan nama field sesuai Form HTML / Blade)
+        // Menggunakan 'wilayah_kecamatan_id' sesuai dropdown dependent
+        $validator = Validator::make($request->all(), [
+            'kategori_laporan_id'   => 'required|in:1,2,3,4,5',
+            'deskripsi'             => 'required|string',
+            'alamat'                => 'required|string',
+            'wilayah_kecamatan_id'  => 'required', 
+            'wilayah_kelurahan_id'  => 'required',
+            
             'file_masyarakat' => [
                 'nullable',
                 'file',
                 function ($attribute, $value, $fail) {
                     $imageExt = ['jpg', 'jpeg', 'png'];
                     $videoExt = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
-
                     $ext = strtolower($value->getClientOriginalExtension());
-                    $size = $value->getSize(); // dalam bytes
+                    $size = $value->getSize();
 
                     if (in_array($ext, $imageExt)) {
-                        // Maksimal 2MB untuk gambar (2 * 1024 * 1024)
-                        if ($size > 2097152) {
-                            $fail('Ukuran gambar maksimal 2MB.');
-                        }
+                        if ($size > 2097152) $fail('Ukuran gambar maksimal 2MB.');
                     } elseif (in_array($ext, $videoExt)) {
-                        // Maksimal 120MB untuk video (120 * 1024 * 1024)
-                        if ($size > 125829120) {
-                            $fail('Ukuran video maksimal 120MB.');
-                        }
+                        if ($size > 125829120) $fail('Ukuran video maksimal 120MB.');
                     } else {
-                        $fail('File harus berupa gambar (jpg, png) atau video (mp4, mov, dsb).');
+                        $fail('Format file tidak valid.');
                     }
                 }
             ],
@@ -196,16 +108,20 @@ class LaporanWargaController extends Controller
             ], 422);
         }
 
-        // 2. KIRIM KE API BACKEND
+        // 2. PERSIAPAN DATA UNTUK API (MAPPING FIELD)
+        // Kita buang field 'wilayah_...' dan buat field baru 'kecamatan_id' agar API menerima
+        $dataToSend = $request->except(['file_masyarakat', 'wilayah_kecamatan_id', 'wilayah_kelurahan_id']);
+        
+        // [FIX] Mapping nama field: Form (wilayah_...) -> API (kecamatan_id)
+        $dataToSend['kecamatan_id'] = $request->wilayah_kecamatan_id;
+        $dataToSend['kelurahan_id'] = $request->wilayah_kelurahan_id;
+
+        // 3. KIRIM KE API
         try {
-            // Set timeout lebih lama (misal 300 detik / 5 menit) untuk upload video
             $http = Http::withToken($token)->timeout(300);
 
-            // Attach File jika ada
             if ($request->hasFile('file_masyarakat')) {
                 $file = $request->file('file_masyarakat');
-
-                // Gunakan fopen agar hemat memori saat upload file besar (stream)
                 $stream = fopen($file->getRealPath(), 'r');
 
                 $http->attach(
@@ -215,19 +131,16 @@ class LaporanWargaController extends Controller
                 );
             }
 
-            // Kirim data text lainnya (kecuali file karena sudah di-attach)
-            // Tambahkan _method POST explicit jika perlu, tapi default post() sudah POST
-            $response = $http->post($baseUrl . '/api/laporan', $request->except('file_masyarakat'));
+            // Kirim $dataToSend yang sudah dimapping
+            $response = $http->post($baseUrl . '/api/laporan', $dataToSend);
+
         } catch (\Throwable $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal menghubungi server (Timeout/Connection Error): ' . $e->getMessage()
-            ], 500);
+            return response()->json(['status' => false, 'message' => 'Koneksi Error: ' . $e->getMessage()], 500);
         }
 
-        // 3. HANDLE RESPONSE DARI API
+        // 4. HANDLE RESPONSE
         if ($response->status() === 401) {
-            return response()->json(['status' => false, 'message' => 'Sesi Anda telah berakhir.'], 401);
+            return response()->json(['status' => false, 'message' => 'Sesi kedaluwarsa.'], 401);
         }
 
         if ($response->status() === 422) {
@@ -240,162 +153,74 @@ class LaporanWargaController extends Controller
 
         if (!$response->ok()) {
             return response()->json([
-                'status' => false,
-                'message' => $response->json()['message'] ?? 'Terjadi kesalahan saat menyimpan data.'
+                'status' => false, 
+                'message' => $response->json()['message'] ?? 'Gagal menyimpan data.'
             ], $response->status());
         }
 
-        // Berhasil
         return response()->json($response->json(), $response->status());
     }
 
-
+    /**
+     * Tampilkan Detail (Modal Show)
+     */
     public function show($id)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
 
-        if (!$token) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Anda belum login.'
-            ], 401);
-        }
+        if (!$token) return response()->json(['status' => false, 'message' => 'Login required.'], 401);
 
         try {
-            $response = Http::withToken($token)
-                ->get($baseUrl . '/api/laporan/' . $id);
+            $response = Http::withToken($token)->get($baseUrl . '/api/laporan/' . $id);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Tidak dapat menghubungi server backend.'
-            ], 500);
-        }
-
-        if ($response->status() === 401) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Token tidak valid atau sudah expired.'
-            ], 401);
-        }
-
-        if ($response->status() === 404) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Data tidak ditemukan.'
-            ], 404);
+            return response()->json(['status' => false, 'message' => 'Server error.'], 500);
         }
 
         if (!$response->ok()) {
-            return response()->json([
-                'status' => false,
-                'message' => $response->json()['message'] ?? 'Gagal mengambil data.'
-            ], $response->status());
+            return response()->json(['status' => false, 'message' => 'Data tidak ditemukan.'], $response->status());
         }
 
-        // misal API mengembalikan detail di root atau di 'data'
-        $data = $response->json();
-        if (isset($data['data'])) {
-            $data = $data['data'];
-        }
+        // Ambil data dari response API
+        $data = $response->json()['data'] ?? [];
 
-        // render view partial (blade) dan kirim sebagai html
+        // Render view partial menjadi HTML string
         $html = view('backend.laporan.show', ['data' => $data])->render();
 
         return response()->json(['html' => $html], 200);
     }
 
-
-
+    /**
+     * Tampilkan Form Edit (Modal Edit)
+     */
     public function edit($id)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
 
-        if (!$token) {
-            return response()->json(['status' => false, 'message' => 'Anda belum login.'], 401);
-        }
+        if (!$token) return response()->json(['status' => false, 'message' => 'Login required.'], 401);
 
         try {
             $response = Http::withToken($token)->get($baseUrl . '/api/laporan/' . $id);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
-        }
-
-        if ($response->status() === 401) {
-            return response()->json(['status' => false, 'message' => 'Token tidak valid atau sudah expired.'], 401);
-        }
-
-        if ($response->status() === 404) {
-            return response()->json(['status' => false, 'message' => 'Data tidak ditemukan.'], 404);
+            return response()->json(['status' => false, 'message' => 'Server error.'], 500);
         }
 
         if (!$response->ok()) {
-            return response()->json(['status' => false, 'message' => $response->json()['message'] ?? 'Gagal mengambil data.'], $response->status());
+            return response()->json(['status' => false, 'message' => 'Data tidak ditemukan.'], $response->status());
         }
 
-        $data = $response->json();
-        if (isset($data['data'])) $data = $data['data'];
+        $data = $response->json()['data'] ?? [];
 
+        // Render view edit menjadi HTML string
         $html = view('backend.laporan.edit', ['data' => $data])->render();
+        
         return response()->json(['html' => $html], 200);
     }
 
-
-    // public function update(Request $request, $id)
-    // {
-    //     $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
-    //     $token   = Session::get('auth_token');
-
-    //     if (!$token) {
-    //         return response()->json(['status' => false, 'message' => 'Anda belum login.'], 401);
-    //     }
-
-    //     try {
-    //         $http = Http::withToken($token);
-
-    //         // 1. ATTACH FILE JIKA ADA
-    //         if ($request->hasFile('file_masyarakat')) {
-    //             $file = $request->file('file_masyarakat');
-    //             $http->attach(
-    //                 'file_masyarakat', 
-    //                 file_get_contents($file->getRealPath()), 
-    //                 $file->getClientOriginalName()
-    //             );
-    //         }
-
-    //         // 2. KIRIM SEBAGAI POST (Sesuai Swagger Backend)
-    //         // Kita buang field '_method' agar backend tidak menganggapnya sebagai PUT
-    //         // Kita buang 'file_masyarakat' dari body karena sudah di-attach
-    //         $dataToSend = $request->except(['file_masyarakat', '_method']);
-
-    //         $response = $http->post($baseUrl . '/api/laporan/' . $id, $dataToSend);
-
-    //     } catch (\Throwable $e) {
-    //         return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend: ' . $e->getMessage()], 500);
-    //     }
-
-    //     // --- VALIDASI RESPONSE ---
-
-    //     if ($response->status() === 401) {
-    //         return response()->json(['status' => false, 'message' => 'Token tidak valid atau sudah expired.'], 401);
-    //     }
-
-    //     if ($response->status() === 422) {
-    //         return response()->json([
-    //             'status'  => 422,
-    //             'message' => $response->json()['message'] ?? 'Validation Error',
-    //             'errors'  => $response->json()['errors'] ?? []
-    //         ], 422);
-    //     }
-
-    //     if (!$response->ok()) {
-    //         return response()->json(['status' => false, 'message' => $response->json()['message'] ?? 'Gagal memperbarui data.'], $response->status());
-    //     }
-
-    //     // Berhasil -> teruskan body API dan status
-    //     return response()->json($response->json(), $response->status());
-    // }
+    /**
+     * Update Data Laporan
+     */
     public function update(Request $request, $id)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
@@ -405,35 +230,26 @@ class LaporanWargaController extends Controller
             return response()->json(['status' => false, 'message' => 'Anda belum login.'], 401);
         }
 
-        // 1. VALIDASI INPUT (Sama seperti Store: Gambar 2MB, Video 120MB)
+        // 1. VALIDASI INPUT (Gunakan nama field sesuai Form HTML: wilayah_...)
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'kategori_laporan_id' => 'required|in:1,2,3,4,5',
-            'deskripsi'           => 'required|string',
-            'alamat'              => 'required|string',
-            'kecamatan_id'        => 'required',
-            'kelurahan_id'        => 'required',
-
-            // Validasi File Custom Closure
+            'kategori_laporan_id'   => 'required|in:1,2,3,4,5',
+            'deskripsi'             => 'required|string',
+            'alamat'                => 'required|string',
+            'wilayah_kecamatan_id'  => 'required', // Nama sesuai form
+            'wilayah_kelurahan_id'  => 'required', // Nama sesuai form
+            
             'file_masyarakat' => [
                 'nullable',
                 'file',
                 function ($attribute, $value, $fail) {
-                    $imageExt = ['jpg', 'jpeg', 'png'];
-                    $videoExt = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
-
                     $ext = strtolower($value->getClientOriginalExtension());
                     $size = $value->getSize();
-
-                    if (in_array($ext, $imageExt)) {
-                        if ($size > 2097152) { // 2MB
-                            $fail('Ukuran gambar maksimal 2MB.');
-                        }
-                    } elseif (in_array($ext, $videoExt)) {
-                        if ($size > 125829120) { // 120MB
-                            $fail('Ukuran video maksimal 120MB.');
-                        }
+                    if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                        if ($size > 2097152) $fail('Ukuran gambar maksimal 2MB.');
+                    } elseif (in_array($ext, ['mp4', 'mov', 'avi', 'mkv', 'webm'])) {
+                        if ($size > 125829120) $fail('Ukuran video maksimal 120MB.');
                     } else {
-                        $fail('File harus berupa gambar (jpg, png) atau video (mp4, mov, dsb).');
+                        $fail('Format file tidak valid.');
                     }
                 }
             ],
@@ -447,17 +263,22 @@ class LaporanWargaController extends Controller
             ], 422);
         }
 
+        // 2. MAPPING DATA (Form -> API)
+        // Hapus field lama
+        $dataToSend = $request->except(['file_masyarakat', '_method', 'wilayah_kecamatan_id', 'wilayah_kelurahan_id']);
+        
+        // Buat field baru sesuai permintaan API Backend
+        $dataToSend['kecamatan_id'] = $request->wilayah_kecamatan_id;
+        $dataToSend['kelurahan_id'] = $request->wilayah_kelurahan_id;
+
         try {
-            // Set timeout panjang untuk video
             $http = Http::withToken($token)->timeout(300);
 
-            // 2. ATTACH FILE JIKA ADA
+            // 3. ATTACH FILE JIKA ADA
             if ($request->hasFile('file_masyarakat')) {
                 $file = $request->file('file_masyarakat');
-
-                // Gunakan stream
                 $stream = fopen($file->getRealPath(), 'r');
-
+                
                 $http->attach(
                     'file_masyarakat',
                     $stream,
@@ -465,70 +286,51 @@ class LaporanWargaController extends Controller
                 );
             }
 
-            // 3. KIRIM SEBAGAI POST (Sesuai Swagger Backend)
-            // Buang '_method' karena backend API menerima POST murni untuk update ini
-            $dataToSend = $request->except(['file_masyarakat', '_method']);
-
+            // 4. KIRIM DATA YANG SUDAH DI-MAPPING
             $response = $http->post($baseUrl . '/api/laporan/' . $id, $dataToSend);
         } catch (\Throwable $e) {
-            return response()->json(['status' => false, 'message' => 'Gagal menghubungi server (Timeout/Connection): ' . $e->getMessage()], 500);
-        }
-
-        // --- HANDLE RESPONSE ---
-        if ($response->status() === 401) {
-            return response()->json(['status' => false, 'message' => 'Token tidak valid atau sudah expired.'], 401);
-        }
-
-        if ($response->status() === 422) {
-            return response()->json([
-                'status'  => 422,
-                'message' => $response->json()['message'] ?? 'Validasi Error',
-                'errors'  => $response->json()['errors'] ?? []
-            ], 422);
+            return response()->json(['status' => false, 'message' => 'Connection Error: ' . $e->getMessage()], 500);
         }
 
         if (!$response->ok()) {
-            return response()->json(['status' => false, 'message' => $response->json()['message'] ?? 'Gagal memperbarui data.'], $response->status());
+            return response()->json([
+                'status' => false, 
+                'message' => $response->json()['message'] ?? 'Gagal update data.'
+            ], $response->status());
         }
 
         return response()->json($response->json(), $response->status());
     }
 
-
+    /**
+     * Hapus Data
+     */
     public function destroy($id)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
 
-        if (!$token) {
-            return response()->json(['status' => false, 'message' => 'Anda belum login.'], 401);
-        }
+        if (!$token) return response()->json(['status' => false, 'message' => 'Login required.'], 401);
 
         try {
             $response = Http::withToken($token)->delete($baseUrl . '/api/laporan/' . $id);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Tidak dapat menghubungi server backend.'], 500);
-        }
-
-        if ($response->status() === 401) {
-            return response()->json(['status' => false, 'message' => 'Token tidak valid atau sudah expired.'], 401);
-        }
-
-        if ($response->status() === 404) {
-            return response()->json(['status' => false, 'message' => 'Data tidak ditemukan.'], 404);
+            return response()->json(['status' => false, 'message' => 'Server error.'], 500);
         }
 
         if (!$response->ok()) {
             return response()->json([
-                'status' => false,
+                'status' => false, 
                 'message' => $response->json()['message'] ?? 'Gagal menghapus data.'
             ], $response->status());
         }
 
-        // sukses -> teruskan response dari API (mis. message)
         return response()->json($response->json(), $response->status());
     }
 
+    /**
+     * Halaman Validasi Laporan
+     */
     public function validation($id)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
@@ -543,22 +345,20 @@ class LaporanWargaController extends Controller
             return back()->with('error', 'Koneksi API terputus.');
         }
 
-        if (!$respLaporan->ok()) {
-            return back()->with('error', 'Gagal mengambil data laporan.');
-        }
+        if (!$respLaporan->ok()) return back()->with('error', 'Gagal mengambil data laporan.');
+        
         $dataLaporan = $respLaporan->json()['data'] ?? [];
 
-        // 2. Cek Role User
+        // 2. Cek Role User & Ambil UPT jika perlu
         $sessionUser = Session::get('user');
-        if (!$sessionUser) return redirect()->route('login');
-
         $userId = is_array($sessionUser) ? $sessionUser['id'] : $sessionUser->id;
+        
+        // Cek Role via API Users
         $respUser = Http::withToken($token)->get($baseUrl . '/api/users/' . $userId);
-
         $roleNames = [];
         if ($respUser->ok()) {
             $userData = $respUser->json()['data'] ?? [];
-            if (isset($userData['roles']) && is_array($userData['roles'])) {
+            if (isset($userData['roles'])) {
                 $roleNames = collect($userData['roles'])->pluck('name')->toArray();
             }
         }
@@ -567,27 +367,16 @@ class LaporanWargaController extends Controller
         $isSda        = in_array('sda', $roleNames);
         $isUpt        = in_array('upt', $roleNames);
 
-        // 3. [UPDATE] Ambil List UPT
-        // Ambil jika Status = 0 (untuk dropdown) ATAU jika upt_id sudah terisi (untuk tampilan riwayat)
+        // Ambil List UPT jika status 0 atau sudah ada UPT
         $listUpt = [];
         $shouldFetchUpt = ($dataLaporan['status_laporan'] == 0 && ($isSuperAdmin || $isSda))
             || !empty($dataLaporan['upt_id']);
 
         if ($shouldFetchUpt) {
             try {
-                // Gunakan endpoint DataTables dengan length besar agar dapat semua
-                $respUpt = Http::withToken($token)->get($baseUrl . '/api/upt', [
-                    'length' => 1000,
-                    'start'  => 0
-                ]);
-
-                if ($respUpt->ok()) {
-                    $jsonUpt = $respUpt->json();
-                    $listUpt = $jsonUpt['data'] ?? [];
-                }
-            } catch (\Exception $e) {
-                // Silent fail
-            }
+                $respUpt = Http::withToken($token)->get($baseUrl . '/api/upt', ['length' => 1000]);
+                if ($respUpt->ok()) $listUpt = $respUpt->json()['data'] ?? [];
+            } catch (\Exception $e) {}
         }
 
         return view('backend.laporan.validation', [
@@ -595,10 +384,13 @@ class LaporanWargaController extends Controller
             'isSuperAdmin' => $isSuperAdmin,
             'isSda'        => $isSda,
             'isUpt'        => $isUpt,
-            'listUpt'      => $listUpt, // Kirim ke view
+            'listUpt'      => $listUpt,
         ]);
     }
 
+    /**
+     * Proses Validasi (Next/Reject)
+     */
     public function processValidation(Request $request, $id)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
@@ -610,87 +402,39 @@ class LaporanWargaController extends Controller
         $currentStatus = (int) $request->current_status;
         $keterangan = $request->keterangan;
 
-        // ==========================================
-        // 1. VALIDASI KHUSUS TAHAP VERIFIKASI (1 -> 2)
-        // ==========================================
+        // 1. Validasi Input (File Verifikasi Wajib jika Status 1 -> 2)
         if ($currentStatus == 1 && $action === 'next') {
-
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            $validator = Validator::make($request->all(), [
                 'keterangan' => 'required|string',
-                // VALIDASI FILE CUSTOM (GAMBAR vs VIDEO)
                 'verif_file' => [
-                    'required', // Wajib ada file bukti saat verifikasi disetujui
+                    'required',
                     'file',
                     function ($attribute, $value, $fail) {
-                        $imageExt = ['jpg', 'jpeg', 'png'];
-                        $videoExt = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
-                        $pdfExt   = ['pdf'];
-
+                        $allowedExt = ['jpg', 'jpeg', 'png', 'mp4', 'mov', 'pdf'];
                         $ext = strtolower($value->getClientOriginalExtension());
                         $size = $value->getSize();
 
-                        if (in_array($ext, $imageExt)) {
-                            // Gambar Max 2MB
-                            if ($size > 2097152) $fail('Ukuran gambar maksimal 2MB.');
-                        } elseif (in_array($ext, $videoExt)) {
-                            // Video Max 120MB
-                            if ($size > 125829120) $fail('Ukuran video maksimal 120MB.');
-                        } elseif (in_array($ext, $pdfExt)) {
-                            // PDF Max 2MB
-                            if ($size > 2097152) $fail('Ukuran PDF maksimal 2MB.');
-                        } else {
-                            $fail('File harus berupa Gambar, PDF, atau Video yang valid.');
-                        }
+                        if (!in_array($ext, $allowedExt)) $fail('Format file tidak didukung.');
+                        if (in_array($ext, ['jpg','jpeg','png','pdf']) && $size > 2097152) $fail('Max 2MB.');
+                        if (in_array($ext, ['mp4','mov']) && $size > 125829120) $fail('Max 120MB.');
                     }
                 ],
             ]);
 
-            if ($validator->fails()) {
-                return back()->with('error', $validator->errors()->first())->withInput();
-            }
+            if ($validator->fails()) return back()->with('error', $validator->errors()->first())->withInput();
         }
 
-        if ($currentStatus == 3 && $action === 'next') {
-
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-                'keterangan' => 'required|string',
-                // VALIDASI FILE CUSTOM (GAMBAR vs VIDEO)
-                'selesai_file' => [
-                    'required', // Wajib ada file bukti saat verifikasi disetujui
-                    'file',
-                    function ($attribute, $value, $fail) {
-                        $imageExt = ['jpg', 'jpeg', 'png'];
-
-                        $ext = strtolower($value->getClientOriginalExtension());
-                        $size = $value->getSize();
-
-                        if (in_array($ext, $imageExt)) {
-                            // Gambar Max 2MB
-                            if ($size > 2097152) $fail('Ukuran gambar maksimal 2MB.');
-                        } else {
-                            $fail('File harus berupa Gambar, PDF, atau Video yang valid.');
-                        }
-                    }
-                ],
-            ]);
-
-            if ($validator->fails()) {
-                return back()->with('error', $validator->errors()->first())->withInput();
-            }
-        }
-
-        // ==========================================
-        // 2. SIAPKAN PAYLOAD STATUS
-        // ==========================================
+        // 2. Siapkan Payload
         $payload = [];
-
         if ($action === 'reject') {
             $payload['status_laporan'] = 5;
+            // Mapping keterangan tolak sesuai status
             if ($currentStatus == 0) $payload['penerima_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 1) $payload['verif_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 2) $payload['penanganan_keterangan_tolak'] = $keterangan;
             elseif ($currentStatus == 3) $payload['selesai_keterangan_tolak'] = $keterangan;
         } else {
+            // Next Step
             if ($currentStatus == 0) {
                 $payload['status_laporan'] = 1;
                 $payload['penerima_keterangan'] = $keterangan;
@@ -698,8 +442,8 @@ class LaporanWargaController extends Controller
             } elseif ($currentStatus == 1) {
                 $payload['status_laporan'] = 2;
                 $payload['verif_keterangan'] = $keterangan;
-                // File dikirim via attach di bawah
-            } elseif ($currentStatus == 2) {
+            }
+            elseif ($currentStatus == 2) {
                 $payload['status_laporan'] = 3;
                 $payload['penanganan_keterangan'] = $keterangan;
             } elseif ($currentStatus == 3) {
@@ -708,36 +452,16 @@ class LaporanWargaController extends Controller
             }
         }
 
-        // ==========================================
-        // 3. KIRIM KE API
-        // ==========================================
+        // 3. Kirim API
         try {
-            // Set timeout 5 menit (300 detik) agar upload video tidak putus
             $http = Http::withToken($token)->timeout(300);
 
-            // Upload File Verifikasi (Khusus Status 1 -> 2)
+            // Upload File Verifikasi
             if ($currentStatus == 1 && $action === 'next' && $request->hasFile('verif_file')) {
                 $file = $request->file('verif_file');
-
-                // Gunakan stream fopen agar hemat memori saat upload file besar
                 $stream = fopen($file->getRealPath(), 'r');
-
-                $http->attach(
-                    'verif_file',
-                    $stream,
-                    $file->getClientOriginalName()
-                );
-            }
-
-            if ($currentStatus == 3 && $action === 'next' && $request->hasFile('selesai_file')) {
-                $file = $request->file('selesai_file');
-                $stream = fopen($file->getRealPath(), 'r'); // Buka stream file
-
-                $http->attach(
-                    'selesai_file',   // Nama field sesuai API Backend
-                    $stream,
-                    $file->getClientOriginalName()
-                );
+                
+                $http->attach('verif_file', $stream, $file->getClientOriginalName());
             }
 
             $response = $http->post($baseUrl . '/api/laporan/update-status/' . $id, $payload);
@@ -745,17 +469,10 @@ class LaporanWargaController extends Controller
             if ($response->successful()) {
                 return redirect()->route('laporan.validation', $id)->with('success', 'Status laporan berhasil diperbarui.');
             } else {
-                $msg = $response->json()['message'] ?? 'Gagal memproses validasi.';
-                // Jika error validasi dari backend (422), tampilkan detailnya
-                if ($response->status() === 422 && isset($response->json()['errors'])) {
-                    $errors = $response->json()['errors'];
-                    $firstError = reset($errors)[0] ?? $msg;
-                    return back()->with('error', $firstError)->withInput();
-                }
-                return back()->with('error', $msg)->withInput();
+                return back()->with('error', $response->json()['message'] ?? 'Gagal update status.')->withInput();
             }
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan server: ' . $e->getMessage());
+            return back()->with('error', 'Server error: ' . $e->getMessage());
         }
     }
-}
+}   
