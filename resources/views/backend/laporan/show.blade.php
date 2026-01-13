@@ -214,43 +214,68 @@
                             </div>
                         @endif
 
-                        {{-- 3. VERIFIKASI --}}
-                        @if (!empty($data['verif_tgl']))
-                            <div class="flex-shrink-0 me-4 w-300px">
-                                <div class="card border border-dashed border-gray-400 bg-light-primary h-100">
-                                    <div class="card-body p-4">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge badge-primary me-2">3</span>
-                                            <span class="fw-bold text-gray-800">Diverifikasi UPT</span>
-                                        </div>
-                                        <div class="text-muted fs-7 mb-2">
-                                            <i class="ki-outline ki-calendar fs-6 me-1"></i>
-                                            {{ \Carbon\Carbon::parse($data['verif_tgl'])->translatedFormat('d M Y, H:i') }}
-                                        </div>
-                                        <p class="fs-7 text-gray-700 mb-2">{{ $data['verif_keterangan'] }}</p>
-                                        @if (!empty($data['verif_file']))
-                                            @php
-                                                $verifUrl =
-                                                    'https://apiaci-deliserdangsehat.deliserdangkab.go.id/storage/verifikasi_laporan/' .
-                                                    $data['id'] .
-                                                    '/' .
-                                                    $data['verif_file'];
-                                            @endphp
-                                            <a href="{{ $verifUrl }}" target="_blank"
-                                                class="btn btn-sm btn-light-primary w-100 border border-primary border-dashed">
-                                                <i class="ki-outline ki-file fs-4"></i> Lihat Dokumen
-                                            </a>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                       {{-- 3. VERIFIKASI --}}
+@if (!empty($data['verif_tgl']))
+    <div class="flex-shrink-0 me-4 w-300px">
+        <div class="card border border-dashed border-gray-400 bg-light-primary h-100">
+            <div class="card-body p-4">
+                {{-- Header Step --}}
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge badge-primary me-2">3</span>
+                    <span class="fw-bold text-gray-800">Diverifikasi UPT</span>
+                </div>
+                {{-- Tanggal --}}
+                <div class="text-muted fs-7 mb-2">
+                    <i class="ki-outline ki-calendar fs-6 me-1"></i>
+                    {{ \Carbon\Carbon::parse($data['verif_tgl'])->translatedFormat('d M Y, H:i') }}
+                </div>
+                {{-- Keterangan --}}
+                <p class="fs-7 text-gray-700 mb-2">"{{ $data['verif_keterangan'] }}"</p>
+                
+                {{-- LOGIKA FOTO / DOKUMEN --}}
+                @if (!empty($data['verif_file']))
+                    @php
+                        // URL File
+                        $verifUrl = 'https://apiaci-deliserdangsehat.deliserdangkab.go.id/storage/verifikasi_laporan/' . $data['id'] . '/' . $data['verif_file'];
+                        
+                        // Cek Ekstensi
+                        $vExt = pathinfo($data['verif_file'], PATHINFO_EXTENSION);
+                        $vIsImg = in_array(strtolower($vExt), ['jpg', 'jpeg', 'png', 'webp']);
+                    @endphp
 
-                            {{-- PANAH --}}
-                            <div
-                                class="flex-shrink-0 d-flex align-items-center justify-content-center h-100 me-4 pt-10">
-                                <i class="ki-outline ki-arrow-right fs-2x text-gray-400"></i>
-                            </div>
-                        @endif
+                    @if($vIsImg)
+                        {{-- TAMPILKAN GAMBAR LANGSUNG --}}
+                        <div class="mt-3 bg-white p-2 rounded border">
+                            <a href="{{ $verifUrl }}" target="_blank" class="d-block">
+                                <img src="{{ $verifUrl }}" class="rounded w-100" style="height: 140px; object-fit: cover;" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                
+                                {{-- Fallback jika gambar error --}}
+                                <div style="display:none;" class="text-center py-5">
+                                    <i class="ki-outline ki-picture text-muted fs-1"></i>
+                                    <span class="d-block fs-8 text-danger mt-1">Gagal memuat preview</span>
+                                    <span class="btn btn-sm btn-light-primary mt-2 fs-9">Buka Link</span>
+                                </div>
+                            </a>
+                            <div class="text-center mt-1"><small class="text-muted" style="font-size:10px;">Klik gambar untuk perbesar</small></div>
+                        </div>
+                    @else
+                        {{-- TAMPILKAN TOMBOL JIKA BUKAN GAMBAR (PDF/DOC) --}}
+                        <a href="{{ $verifUrl }}" target="_blank"
+                           class="btn btn-sm btn-light-primary w-100 border border-primary border-dashed mt-2">
+                            <i class="ki-outline ki-file fs-4"></i> Lihat Dokumen ({{ strtoupper($vExt) }})
+                        </a>
+                    @endif
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- PANAH --}}
+    <div class="flex-shrink-0 d-flex align-items-center justify-content-center h-100 me-4 pt-10">
+        <i class="ki-outline ki-arrow-right fs-2x text-gray-400"></i>
+    </div>
+@endif
 
                         {{-- 4. PENANGANAN --}}
                         @if (!empty($data['penanganan_tgl']))
@@ -278,36 +303,62 @@
                         @endif
 
                         {{-- 5. SELESAI --}}
-                        @if (!empty($data['selesai_tgl']))
-                            <div class="flex-shrink-0 me-4 w-300px">
-                                <div class="card border border-dashed border-gray-400 bg-light-success h-100">
-                                    <div class="card-body p-4">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <span class="badge badge-success me-2">5</span>
-                                            <span class="fw-bold text-gray-800">Selesai</span>
-                                        </div>
-                                        <div class="text-muted fs-7 mb-2">
-                                            <i class="ki-outline ki-calendar fs-6 me-1"></i>
-                                            {{ \Carbon\Carbon::parse($data['selesai_tgl'])->translatedFormat('d M Y, H:i') }}
-                                        </div>
-                                        <p class="fs-7 text-gray-700 mb-2">{{ $data['selesai_keterangan'] }}</p>
-                                        @if (!empty($data['selesai_file']))
-                                            @php
-                                                $selesaiUrl =
-                                                    'https://apiaci-deliserdangsehat.deliserdangkab.go.id/storage/selesai_laporan/' .
-                                                    $data['id'] .
-                                                    '/' .
-                                                    $data['selesai_file'];
-                                            @endphp
-                                            <a href="{{ $selesaiUrl }}" target="_blank"
-                                                class="btn btn-sm btn-light-success w-100 border border-success border-dashed">
-                                                <i class="ki-outline ki-check-circle fs-4"></i> Lihat Bukti
-                                            </a>
-                                        @endif
-                                    </div>
+@if (!empty($data['selesai_tgl']))
+    <div class="flex-shrink-0 me-4 w-300px">
+        <div class="card border border-dashed border-gray-400 bg-light-success h-100">
+            <div class="card-body p-4">
+                {{-- Header Step --}}
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge badge-success me-2">5</span>
+                    <span class="fw-bold text-gray-800">Selesai</span>
+                </div>
+                {{-- Tanggal --}}
+                <div class="text-muted fs-7 mb-2">
+                    <i class="ki-outline ki-calendar fs-6 me-1"></i>
+                    {{ \Carbon\Carbon::parse($data['selesai_tgl'])->translatedFormat('d M Y, H:i') }}
+                </div>
+                {{-- Keterangan --}}
+                <p class="fs-7 text-gray-700 mb-2">{{ $data['selesai_keterangan'] }}</p>
+
+                {{-- LOGIKA FOTO / DOKUMEN --}}
+                @if (!empty($data['selesai_file']))
+                    @php
+                        // URL File Selesai
+                        $selesaiUrl = 'https://apiaci-deliserdangsehat.deliserdangkab.go.id/storage/selesai_laporan/' . $data['id'] . '/' . $data['selesai_file'];
+                        
+                        // Cek Ekstensi
+                        $sExt = pathinfo($data['selesai_file'], PATHINFO_EXTENSION);
+                        $sIsImg = in_array(strtolower($sExt), ['jpg', 'jpeg', 'png', 'webp']);
+                    @endphp
+
+                    @if($sIsImg)
+                        {{-- TAMPILKAN GAMBAR LANGSUNG --}}
+                        <div class="mt-3 bg-white p-2 rounded border border-success border-dashed">
+                            <a href="{{ $selesaiUrl }}" target="_blank" class="d-block">
+                                <img src="{{ $selesaiUrl }}" class="rounded w-100" style="height: 140px; object-fit: cover;" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                
+                                {{-- Fallback jika gambar error --}}
+                                <div style="display:none;" class="text-center py-5">
+                                    <i class="ki-outline ki-picture text-muted fs-1"></i>
+                                    <span class="d-block fs-8 text-danger mt-1">Gagal memuat preview</span>
+                                    <span class="btn btn-sm btn-light-success mt-2 fs-9">Buka Link</span>
                                 </div>
-                            </div>
-                        @endif
+                            </a>
+                            <div class="text-center mt-1"><small class="text-success" style="font-size:10px;">Bukti Penyelesaian</small></div>
+                        </div>
+                    @else
+                        {{-- TAMPILKAN TOMBOL JIKA BUKAN GAMBAR --}}
+                        <a href="{{ $selesaiUrl }}" target="_blank"
+                           class="btn btn-sm btn-light-success w-100 border border-success border-dashed mt-2">
+                            <i class="ki-outline ki-check-circle fs-4"></i> Lihat Bukti ({{ strtoupper($sExt) }})
+                        </a>
+                    @endif
+                @endif
+            </div>
+        </div>
+    </div>
+@endif
 
                         {{-- 6. DITOLAK --}}
                         @if ($data['status_laporan'] == 5)
