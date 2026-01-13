@@ -123,10 +123,10 @@ class LaporanWargaController extends Controller
             if ($request->hasFile('file_masyarakat')) {
                 $file = $request->file('file_masyarakat');
                 $stream = fopen($file->getRealPath(), 'r');
-                
+
                 $http->attach(
-                    'file_masyarakat', 
-                    $stream, 
+                    'file_masyarakat',
+                    $stream,
                     $file->getClientOriginalName()
                 );
             }
@@ -280,15 +280,14 @@ class LaporanWargaController extends Controller
                 $stream = fopen($file->getRealPath(), 'r');
                 
                 $http->attach(
-                    'file_masyarakat', 
-                    $stream, 
+                    'file_masyarakat',
+                    $stream,
                     $file->getClientOriginalName()
                 );
             }
 
             // 4. KIRIM DATA YANG SUDAH DI-MAPPING
             $response = $http->post($baseUrl . '/api/laporan/' . $id, $dataToSend);
-
         } catch (\Throwable $e) {
             return response()->json(['status' => false, 'message' => 'Connection Error: ' . $e->getMessage()], 500);
         }
@@ -370,8 +369,8 @@ class LaporanWargaController extends Controller
 
         // Ambil List UPT jika status 0 atau sudah ada UPT
         $listUpt = [];
-        $shouldFetchUpt = ($dataLaporan['status_laporan'] == 0 && ($isSuperAdmin || $isSda)) 
-                          || !empty($dataLaporan['upt_id']);
+        $shouldFetchUpt = ($dataLaporan['status_laporan'] == 0 && ($isSuperAdmin || $isSda))
+            || !empty($dataLaporan['upt_id']);
 
         if ($shouldFetchUpt) {
             try {
@@ -396,10 +395,10 @@ class LaporanWargaController extends Controller
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
         $token   = Session::get('auth_token');
-        
+
         if (!$token) return redirect()->route('login');
 
-        $action = $request->action; 
+        $action = $request->action;
         $currentStatus = (int) $request->current_status;
         $keterangan = $request->keterangan;
 
@@ -439,17 +438,15 @@ class LaporanWargaController extends Controller
             if ($currentStatus == 0) {
                 $payload['status_laporan'] = 1;
                 $payload['penerima_keterangan'] = $keterangan;
-                $payload['upt_id'] = $request->upt_id; 
-            } 
-            elseif ($currentStatus == 1) {
+                $payload['upt_id'] = $request->upt_id;
+            } elseif ($currentStatus == 1) {
                 $payload['status_laporan'] = 2;
                 $payload['verif_keterangan'] = $keterangan;
             }
             elseif ($currentStatus == 2) {
                 $payload['status_laporan'] = 3;
                 $payload['penanganan_keterangan'] = $keterangan;
-            }
-            elseif ($currentStatus == 3) {
+            } elseif ($currentStatus == 3) {
                 $payload['status_laporan'] = 4;
                 $payload['selesai_keterangan'] = $keterangan;
             }
@@ -474,7 +471,6 @@ class LaporanWargaController extends Controller
             } else {
                 return back()->with('error', $response->json()['message'] ?? 'Gagal update status.')->withInput();
             }
-
         } catch (\Exception $e) {
             return back()->with('error', 'Server error: ' . $e->getMessage());
         }

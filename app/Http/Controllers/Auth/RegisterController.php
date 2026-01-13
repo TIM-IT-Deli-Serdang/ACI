@@ -64,7 +64,7 @@ class RegisterController extends Controller
             // JIKA API BUTUH AUTH, Anda harus punya "Super Token" atau endpoint harus dibuka (except).
             // UNTUK REGISTRASI UMUM, BIASANYA ENDPOINT DIBUAT PUBLIC di Backend.
             // Jika backend mewajibkan auth, kode ini akan return 401.
-            
+
             $response = Http::timeout(15)
                 ->withHeaders(['Accept' => 'application/json'])
                 ->post($baseUrl . '/api/pengguna', $payload);
@@ -85,7 +85,6 @@ class RegisterController extends Controller
                     'errors'  => $body['errors'] ?? []
                 ], $response->status());
             }
-
         } catch (\Exception $e) {
             Log::error('Register Error: ' . $e->getMessage());
             return response()->json(['status' => false, 'message' => 'Terjadi kesalahan koneksi ke server.'], 500);
@@ -119,7 +118,7 @@ class RegisterController extends Controller
         // 4. KIRIM REQUEST KE BACKEND API (Bukan ke WA Gateway langsung)
         try {
             // Ambil Base URL API dari fungsi yang sudah ada
-            $baseUrl = $this->baseUrl(); 
+            $baseUrl = $this->baseUrl();
 
             // Tembak Endpoint Backend Anda: /api/pesan/kirim-otp
             // Payload disesuaikan dengan permintaan KirimPesanController (no_wa, otp)
@@ -127,11 +126,11 @@ class RegisterController extends Controller
                 'no_wa' => $noWa,
                 'otp'   => (string) $otp,
             ]);
-            
+
             // Cek Response dari Backend
             if ($response->successful() && $response->json()['status'] === true) {
                 return response()->json([
-                    'status' => true, 
+                    'status' => true,
                     'message' => 'OTP berhasil dikirim ke WhatsApp.'
                 ]);
             } else {
@@ -139,12 +138,53 @@ class RegisterController extends Controller
                 $msg = $response->json()['message'] ?? 'Gagal mengirim OTP dari server.';
                 return response()->json(['status' => false, 'message' => $msg], 500);
             }
-
         } catch (\Exception $e) {
             return response()->json([
-                'status' => false, 
+                'status' => false,
                 'message' => 'Koneksi ke Backend Gagal: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    // Tambahkan di dalam class RegisterController
+
+    public function verifikasiOtp(Request $request)
+    {
+        $request->validate([
+            'otp' => 'required|string',
+            'no_wa' => 'required|string'
+        ]);
+
+        // 1. Ambil data dari Session
+        $sessionOtp = session('register_otp');
+        $sessionWa  = session('register_wa');
+        $expires    = session('otp_expires');
+
+        // 2. Cek apakah OTP ada di session
+        if (!$sessionOtp || !$expires) {
+            return response()->json(['status' => false, 'message' => 'OTP kadaluarsa atau belum diminta.'], 400);
+        }
+
+        // 3. Cek Kadaluarsa Waktu
+        if (now()->greaterThan($expires)) {
+            return response()->json(['status' => false, 'message' => 'Waktu OTP habis. Silakan kirim ulang.'], 400);
+        }
+
+        // 4. Cek Kesesuaian Nomor WA (Agar tidak pakai OTP orang lain)
+        if ($request->no_wa != $sessionWa) {
+            return response()->json(['status' => false, 'message' => 'Nomor WhatsApp berubah. Kirim ulang OTP.'], 400);
+        }
+
+        // 5. Cek Kode OTP
+        if ($request->otp === $sessionOtp) {
+            // Jika Benar
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP Valid.'
+            ]);
+        } else {
+            // Jika Salah
+            return response()->json(['status' => false, 'message' => 'Kode OTP Salah.'], 400);
         }
     }
 }
