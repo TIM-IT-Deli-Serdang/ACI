@@ -1,3 +1,8 @@
+
+@php
+    // Konfigurasi Domain API
+    $apiDomain = 'https://apiaci-deliserdangsehat.deliserdangkab.go.id';
+@endphp
 <input type="hidden" name="hidden_id" id="hidden_id" value="{{ $data['id'] ?? '' }}" />
 
 {{-- KATEGORI LAPORAN --}}
@@ -22,8 +27,9 @@
         placeholder="Jelaskan detail kerusakan...">{{ $data['deskripsi'] ?? '' }}</textarea>
 </div>
 
-{{-- [BARU] WILAYAH DELI SERDANG (EDIT) --}}
+{{-- WILAYAH (API DEPENDENT DROPDOWN) --}}
 <div class="row mb-7">
+    {{-- KECAMATAN --}}
     <div class="col-md-6 fv-row">
         <label class="required fs-6 fw-semibold mb-2">Kecamatan</label>
         {{-- Simpan nilai lama di data-old --}}
@@ -32,6 +38,8 @@
             <option></option>
         </select>
     </div>
+
+    {{-- KELURAHAN / DESA --}}
     <div class="col-md-6 fv-row">
         <label class="required fs-6 fw-semibold mb-2">Kelurahan/Desa</label>
         <select id="edit_kelurahan" name="kelurahan_id" class="form-select form-select-solid" data-control="select2"
@@ -41,6 +49,7 @@
     </div>
 </div>
 
+
 {{-- ALAMAT --}}
 <div class="fv-row mb-7">
     <label class="required fw-semibold fs-7 mb-2">Alamat Lengkap</label>
@@ -48,7 +57,7 @@
         placeholder="Nama Jalan, Desa, Kecamatan...">{{ $data['alamat'] ?? '' }}</textarea>
 </div>
 
-{{-- [BARU] LOKASI LAT/LONG (EDIT) --}}
+{{-- LOKASI LAT/LONG --}}
 <div class="row mb-7">
     <div class="col-md-5 fv-row">
         <label class="fw-semibold fs-7 mb-2">Latitude</label>
@@ -111,10 +120,11 @@
 
 <script>
     $(document).ready(function() {
-        // Re-Init Select2
-        $('#FormEditModalID select[data-control="select2"]').select2({
+        // 1. Re-Init Select2 (Wajib karena element baru masuk DOM)
+        // Kita init spesifik agar tidak bentrok
+        $('#kecamatanEdit, #kelurahanEdit').select2({
             dropdownParent: $('#Modal_Edit_Data'),
-            minimumResultsForSearch: Infinity
+            width: '100%'
         });
 
         // === LOGIKA WILAYAH EDIT (API INTERNAL) ===
@@ -166,17 +176,20 @@
             else $('#edit_kelurahan').empty().append('<option value="">-- Pilih Kelurahan --</option>');
         });
 
-        // === LOGIKA AUTO LOCATION EDIT ===
+        // 3. LOGIKA GPS EDIT
         $('#btn-get-loc-edit').click(function() {
             var btn = $(this);
             if (navigator.geolocation) {
+                btn.addClass('spinner spinner-primary spinner-center');
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
                         $('#edit_lat').val(position.coords.latitude);
                         $('#edit_long').val(position.coords.longitude);
+                        btn.removeClass('spinner spinner-primary spinner-center');
                         Swal.fire("Lokasi Diperbarui", "", "success");
                     },
                     function(error) {
+                        btn.removeClass('spinner spinner-primary spinner-center');
                         Swal.fire("Gagal", "Pastikan GPS aktif.", "error");
                     }
                 );
