@@ -76,8 +76,6 @@
         @php
             $fileUrl =
                 'https://apiaci-deliserdangsehat.deliserdangkab.go.id/storage/laporan/masyarakat/' .
-                $data['id'] .
-                '/' .
                 $data['file_masyarakat'];
             $ext = pathinfo($data['file_masyarakat'], PATHINFO_EXTENSION);
             $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
@@ -122,7 +120,7 @@
         const oldKel = $('#edit_kelurahan').data('old');
 
         // 1. Load Kecamatan
-        $.getJSON("{{ route('ajax.kecamatan') }}", function(res) {
+        $.getJSON("{{ route('laporan.ajax.kecamatan') }}", function(res) {
             $('#edit_kecamatan').empty().append('<option value="">-- Pilih Kecamatan --</option>');
 
             if (res.data) {
@@ -143,7 +141,7 @@
         function loadKelurahan(kecId, selectedKel = null) {
             $('#edit_kelurahan').empty().append('<option value="">Loading...</option>');
 
-            var url = "{{ route('ajax.kelurahan', ':id') }}";
+            var url = "{{ route('laporan.ajax.kelurahan', ':id') }}";
             url = url.replace(':id', kecId);
 
             $.getJSON(url, function(res) {

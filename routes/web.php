@@ -122,6 +122,8 @@ Route::middleware(['frontend.auth'])->group(function () {
         // ACTION SUBMIT VALIDASI (Tambahkan ini)
         Route::post('/laporan/{id}/validation', [LaporanWargaController::class, 'processValidation'])->name('laporan.process-validation');
         Route::resource('/laporan', LaporanWargaController::class)->names('laporan');
+        Route::get('/ajax/kecamatan', [LaporanWargaController::class, 'getAjaxKecamatan'])->name('ajax.kecamatan');
+        Route::get('/ajax/kelurahan/{id}', [LaporanWargaController::class, 'getAjaxKelurahan'])->name('ajax.kelurahan');
     });
 
     Route::prefix('rekap-laporan')->group(function () {
