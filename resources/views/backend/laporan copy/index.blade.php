@@ -32,11 +32,15 @@
     @endphp
 
     <div id="kt_app_toolbar" class="app-toolbar d-flex flex-stack py-4 py-lg-8">
-        {{-- Toolbar Header (Tetap sama) --}}
-        <div class="d-flex flex-grow-1 flex-stack flex-wrap gap-2 mb-n10">
+        <div class="d-flex flex-grow-1 flex-stack flex-wrap gap-2 mb-n10" id="kt_toolbar">
             <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
                 <h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">
                     Laporan Warga</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted"><a class="text-muted text-hover-primary">Home</a></li>
+                    <li class="breadcrumb-item"><span class="bullet bg-gray-500 w-5px h-2px"></span></li>
+                    <li class="breadcrumb-item text-gray-900">List Laporan</li>
+                </ul>
             </div>
 
             {{-- TOMBOL TAMBAH (KHUSUS MASYARAKAT) --}}
@@ -53,12 +57,12 @@
 
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div class="card border border-gray-300">
-            {{-- Search & Table Header (Tetap sama) --}}
             <div class="card-header border-bottom border-gray-300 bg-secondary">
                 <div class="card-title">
                     <div class="d-flex align-items-center position-relative my-1">
                         <i class="ki-outline ki-magnifier fs-3 position-absolute ms-5"></i>
-                        <input type="text" id="search" class="form-control w-250px ps-13" placeholder="Cari Deskripsi / Alamat" />
+                        <input type="text" data-kt-user-table-filter="search" id="search"
+                            class="form-control w-250px ps-13" placeholder="Cari Deskripsi / Alamat" />
                     </div>
                 </div>
             </div>
@@ -69,7 +73,7 @@
                             <th class="w-10px pe-2 text-start">No</th>
                             <th class="min-w-100px">Kategori</th>
                             <th class="min-w-150px">Deskripsi</th>
-                            <th class="min-w-150px">Lokasi</th> {{-- Digabung agar rapi --}}
+                            <th class="min-w-150px">Alamat</th>
                             <th class="min-w-100px">Status</th>
                             {{-- Lebarkan kolom tanggal untuk muat progress bar --}}
                             <th class="text-end min-w-150px pe-4">Tanggal & Tracking</th>
@@ -82,33 +86,19 @@
         </div>
     </div>
 
-    {{-- ========================================================== --}}
-    {{-- MODAL TAMBAH DATA (Updated dengan Kelurahan) --}}
-    {{-- ========================================================== --}}
-   <div class="modal fade" id="modalStore" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered mw-650px">
-        <form id="FormTambahLaporan" enctype="multipart/form-data">
-            @csrf
+    {{-- MODAL TAMBAH DATA --}}
+    <div class="modal fade" id="Modal_Tambah_Data" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="fw-bold">Tambah Laporan</h5>
-                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-                        <i class="ki-outline ki-cross fs-1 text-dark"></i>
+                <div class="modal-header pb-0 border-0 justify-content-end">
+                    <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                        <i class="ki-outline ki-cross fs-1"></i>
                     </div>
                 </div>
-                <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
-                    
-                    {{-- Kategori --}}
-                    <div class="mb-5 mt-5">
-                        <label class="required form-label">Kategori</label>
-                        <select name="kategori_laporan_id" class="form-select form-select-solid" required>
-                            <option value="">-- Pilih --</option>
-                            <option value="1">Jalan Rusak</option>
-                            <option value="2">Drainase Tersumbat</option>
-                            <option value="3">Banjir</option>
-                            <option value="4">Tanggul/Jembatan</option>
-                            <option value="5">Infrastruktur Lain</option>
-                        </select>
+                <div class="modal-body scroll-y mx-5 mx-xl-18 pt-0 pb-15">
+                    <div class="text-center mb-13">
+                        <h1 class="mb-3">Buat Laporan Baru</h1>
+                        <div class="text-muted fw-semibold fs-5">Sampaikan keluhan infrastruktur di Deli Serdang</div>
                     </div>
 
                     <form id="FormTambahLaporan" class="form" enctype="multipart/form-data">
@@ -204,44 +194,50 @@
                                         class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                             </button>
                         </div>
-                    </div>
-
-                    {{-- File Upload --}}
-                    <div class="mb-5">
-                        <label class="form-label">Foto/Video Bukti</label>
-                        <input type="file" name="file_masyarakat" class="form-control form-control-solid" accept="image/*,video/*" />
-                        <div class="text-muted fs-7 mt-1">Max: Foto 2MB, Video 120MB</div>
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" id="btn_simpan_laporan" class="btn btn-primary">
-                        <span class="indicator-label">Simpan</span>
-                        <span class="indicator-progress">Loading... <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
-                    </button>
+                    </form>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
-</div>
 
-    {{-- MODAL SHOW (Tetap sama) --}}
-    <div class="modal fade" id="Modal_Show_Data" tabindex="-1"><div class="modal-dialog modal-dialog-centered mw-750px"><div class="modal-content"><div class="modal-body" id="ShowRowModalBody"></div></div></div></div>
+    {{-- MODAL SHOW --}}
+    <div class="modal fade shadow-sm" id="Modal_Show_Data" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-750px">
+            <div class="modal-content" id="show-modal-content">
+                <div class="modal-header align-items-center py-6 border-gray-300">
+                    <h4 class="fw-bold m-0">Detail Laporan</h4>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-outline ki-cross fs-1 text-dark"></i>
+                    </div>
+                </div>
+                <div class="modal-body" id="ShowRowModalBody">
+                    <div class="text-center py-10">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-3">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- MODAL EDIT --}}
-    <div class="modal fade" id="Modal_Edit_Data" data-bs-backdrop="static" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered mw-650px">
-            <div class="modal-content">
-                <div class="modal-header">
+    <div class="modal fade" id="Modal_Edit_Data" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-550px">
+            <div class="modal-content" id="edit-modal-content">
+                <div class="modal-header align-items-center py-6 border-gray-300">
                     <h4 class="fw-bold">Edit Laporan</h4>
-                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal"><i class="ki-outline ki-cross fs-1"></i></div>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-outline ki-cross fs-1 text-dark"></i>
+                    </div>
                 </div>
-                <form id="FormEditModalID" enctype="multipart/form-data">
-                    <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
+                <form id="FormEditModalID" class="form" enctype="multipart/form-data">
+                    <div class="modal-body px-2 my-2">
                         @method('PUT')
                         @csrf
-                        <div id="EditRowModalBody"></div> {{-- Form Edit dari Controller di-inject ke sini --}}
+                        <div class="d-flex flex-column scroll-y px-5 px-lg-10" id="kt_modal_edit_scroll"
+                            data-kt-scroll="true" data-kt-scroll-max-height="auto" data-kt-scroll-offset="300px">
+                            <div id="EditRowModalBody"></div>
+                        </div>
                     </div>
                     <div class="modal-footer py-4">
                         <button type="button" class="btn btn-sm btn-secondary me-3"
@@ -529,11 +525,11 @@
                     drawCallback: function() {
                         KTMenu.createInstances();
                     }
-                    dropdown.html(html).trigger('change.select2');
-                },
-                error: function() { dropdown.html('<option value="">Gagal</option>'); }
-            });
-        }
+                });
+
+                $('#search').on('keyup', debounce(function() {
+                    table.search($(this).val()).draw();
+                }, 500));
 
                 // ==========================================
                 // LOGIKA WILAYAH (API INTERNAL) - TAMBAH DATA
@@ -666,15 +662,11 @@
                             $("#ShowRowModalBody").html(
                                 '<p class="text-danger">Gagal memuat data.</p>');
                         }
-                        Swal.fire("Gagal", msg, "error");
-                    },
-                    complete: function() {
-                        btn.prop('disabled', false).text('Simpan');
-                    }
+                    });
                 });
-            });
 
-            $("body").on("click", ".btn-get-edit", function(e) {
+                // --- EDIT DATA (Load Form) ---
+                $("body").on("click", ".btn-get-edit", function(e) {
                     e.preventDefault();
                     let id = $(this).data("id");
 

@@ -25,9 +25,51 @@ class LaporanWargaController extends Controller
         return view('backend.laporan.index'); 
     }
 
-    /**
-     * Data untuk DataTables (AJAX)
-     */
+    // Proxy untuk mengambil list Kecamatan Deli Serdang
+    public function getAjaxKecamatan(Request $request)
+    {
+        $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
+        $token   = Session::get('auth_token');
+
+        if (!$token) return response()->json(['data' => []], 401);
+
+        try {
+            // [UPDATE] Menggunakan parameter spesifik 'wilayah_kabupaten_id'
+            // Ini menjamin hanya kecamatan dari Kab. Deli Serdang (1207) yang muncul
+            $response = Http::withToken($token)->get($baseUrl . '/api/wilayah-kecamatan', [
+                'wilayah_kabupaten_id' => '1212',
+                'per_page' => 100
+            ]);
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            return response()->json(['data' => []], 500);
+        }
+    }
+
+    // Proxy untuk mengambil list Kelurahan berdasarkan Kecamatan
+    public function getAjaxKelurahan(Request $request, $kecamatanId)
+    {
+        $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
+        $token   = Session::get('auth_token');
+
+        if (!$token) return response()->json(['data' => []], 401);
+
+        try {
+            // [UPDATE] Menggunakan parameter spesifik 'wilayah_kecamatan_id'
+            // Ini menjamin hanya kelurahan dari kecamatan yang dipilih yang muncul
+            $response = Http::withToken($token)->get($baseUrl . '/api/wilayah-desa', [
+                'wilayah_kecamatan_id' => $kecamatanId,
+                'per_page' => 100
+            ]);
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            return response()->json(['data' => []], 500);
+        }
+    }
+
+
     public function getData(Request $request)
     {
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
