@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Backend\Laporan\LaporanWargaController;
 use App\Http\Controllers\Backend\Laporan\RekapLaporanController;
 use App\Http\Controllers\Dashboard\DashboardController;
@@ -51,6 +52,21 @@ Route::post('/register', [RegisterController::class, 'register'])->name('registe
 Route::post('/register/kirim-otp', [RegisterController::class, 'kirimOtp'])->name('register.send-otp');
 Route::post('/register/verify-otp', [RegisterController::class, 'verifikasiOtp'])->name('register.verify-otp'); // <--- TAMBAHKAN INI
 
+// FORGOT PASSWORD ROUTES
+// 1. Tampilan Halaman Input WA
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+
+// 2. Proses Kirim OTP (Generate OTP & Panggil API)
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])->name('password.otp');
+
+// 3. [BARU] Verifikasi User Saja (Tanpa Kirim OTP) - Untuk yang sudah punya kode
+Route::post('/forgot-password/verify-user', [ForgotPasswordController::class, 'verifyUserOnly'])->name('password.verify-user');
+
+// 4. Halaman Input OTP & Password Baru
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+
+// 5. Proses Ganti Password Akhir
+Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
 
 Route::middleware(['frontend.auth'])->group(function () {
 
