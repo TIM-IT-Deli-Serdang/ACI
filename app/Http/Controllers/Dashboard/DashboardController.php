@@ -22,117 +22,68 @@ class DashboardController extends Controller
         }
 
         $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
-        if (empty($baseUrl)) {
-            return redirect()->route('login')
-                ->withErrors(['_global' => 'API_BASE_URL belum diset di .env']);
-        }
-
+        
         // Normalisasi user ke array
         $userArr = is_object($user) ? (array) $user : (array) $user;
 
-        // =========================================================
-        // ✅ DETEKSI ROLE (prioritas: userArr['roles'][0])
-        // =========================================================
+        // ---------------------------------------------------------
+        // ✅ 2. DETEKSI ROLE
+        // ---------------------------------------------------------
         $role = '';
-
-        // Case 1: roles (array) -> ambil role pertama
         if (isset($userArr['roles']) && is_array($userArr['roles']) && count($userArr['roles']) > 0) {
             $firstRole = $userArr['roles'][0];
-
             if (is_string($firstRole)) {
                 $role = $firstRole;
             } elseif (is_array($firstRole)) {
-                $role = $firstRole['name']
-                    ?? $firstRole['role_name']
-                    ?? $firstRole['roleName']
-                    ?? '';
-            } elseif (is_object($firstRole)) {
-                $role = $firstRole->name
-                    ?? $firstRole->role_name
-                    ?? $firstRole->roleName
-                    ?? '';
+                $role = $firstRole['name'] ?? '';
             }
         }
-
-        // Case 2: fallback kalau roles tidak ada
+        // Fallback
         if (empty($role)) {
-            $role = $userArr['role']
-                ?? $userArr['role_name']
-                ?? $userArr['roleName']
-                ?? Session::get('role')
-                ?? '';
+            $role = $userArr['role'] ?? Session::get('role') ?? '';
         }
-
         $role = strtolower(trim((string) $role));
 
-        // =========================================================
-        // ✅ DASHBOARD MASYARAKAT (Swagger)
-        // GET /api/dashboard/masyarakat
-        // View: backend.dashboard.masyarakat
-        // =========================================================
-        if ($role === 'masyarakat') {
 
+       // ---------------------------------------------------------
+        // KONDISI 1: MASYARAKAT (Data Pribadi)
+        // ---------------------------------------------------------
+        if ($role === 'masyarakat') {
             $rekapStatus  = [];
             $totalLaporan = 0;
-            $rekapTanggal = [];
             $dataTerbaru  = [];
+            
+            // 🔥 UPDATE: Tambahkan Titik Awal 0 agar grafik masyarakat juga miring naik
+            $chartLabels  = ['']; 
+            $chartValues  = [0];
 
             try {
-                $url  = $baseUrl . '/api/dashboard/masyarakat';
-                $resp = Http::withToken($token)->acceptJson()->get($url);
+                $resp = Http::withToken($token)->acceptJson()->get($baseUrl . '/api/dashboard/masyarakat');
+                
+                if ($resp->ok()) {
+                    $json = $resp->json();
+                    $rekapStatus  = $json['rekap_status'] ?? [];
+                    $totalLaporan = (int) ($json['total'] ?? 0);
+                    $rekapTanggal = $json['rekap_tanggal'] ?? [];
+                    $dataTerbaru  = $json['data_terbaru'] ?? [];
 
-                if ($resp->status() === 401) {
-                    return redirect()->route('login')
-                        ->withErrors(['_global' => 'Token expired. Silakan login ulang.']);
+                    // Proses Chart dengan ANCHOR POINT
+                    if (is_array($rekapTanggal)) {
+                        usort($rekapTanggal, function ($a, $b) {
+                            return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
+                        });
+                        foreach ($rekapTanggal as $row) {
+                            $tglRaw = $row['tanggal'] ?? '';
+                            // Format tanggal biar cantik (18 Jan) sama seperti admin
+                            $label = $tglRaw ? date('d M', strtotime($tglRaw)) : '';
+
+                            $chartLabels[] = $label;
+                            $chartValues[] = (int) ($row['total'] ?? 0);
+                        }
+                    }
                 }
-
-                if (!$resp->ok()) {
-                    return view('backend.dashboard.masyarakat', [
-                        'user'         => $userArr,
-                        'rekapStatus'  => [],
-                        'totalLaporan' => 0,
-                        'dataTerbaru'  => [],
-                        'chartLabels'  => [],
-                        'chartValues'  => [],
-                        'apiError'     => $resp->json('message')
-                            ?? ('Gagal ambil dashboard masyarakat (HTTP ' . $resp->status() . ')'),
-                    ]);
-                }
-
-                $json = $resp->json() ?? [];
-
-                $rekapStatus  = $json['rekap_status'] ?? [];
-                $totalLaporan = (int) ($json['total'] ?? 0);
-                $rekapTanggal = $json['rekap_tanggal'] ?? [];
-
-                // opsional kalau nanti swagger tambah
-                $dataTerbaru  = $json['data_terbaru'] ?? $json['dataTerbaru'] ?? [];
-
             } catch (\Throwable $e) {
-                return view('backend.dashboard.masyarakat', [
-                    'user'         => $userArr,
-                    'rekapStatus'  => [],
-                    'totalLaporan' => 0,
-                    'dataTerbaru'  => [],
-                    'chartLabels'  => [],
-                    'chartValues'  => [],
-                    'apiError'     => 'Tidak dapat menghubungi server backend.',
-                ]);
-            }
-
-            // chart dari rekap_tanggal
-            $chartLabels = [];
-            $chartValues = [];
-
-            if (is_array($rekapTanggal)) {
-                usort($rekapTanggal, function ($a, $b) {
-                    return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
-                });
-
-                foreach ($rekapTanggal as $row) {
-                    $chartLabels[] = (string) ($row['tanggal'] ?? '');
-                    $chartValues[] = (int) ($row['total'] ?? 0);
-                }
+                // Silent fail
             }
 
             return view('backend.dashboard.masyarakat', [
@@ -145,74 +96,58 @@ class DashboardController extends Controller
             ]);
         }
 
-        // =========================================================
-        // ✅ DASHBOARD SUPERADMIN (Swagger Global)
-        // GET /api/dashboard
-        // View: backend.dashboard.superadmin
-        // =========================================================
-        if ($role === 'superadmin' || $role === 'super admin') {
+        // ---------------------------------------------------------
+        // KONDISI 2: INTERNAL (Superadmin, SDA, UPT)
+        // Semuanya pakai API yang sama & View yang sama
+        // ---------------------------------------------------------
+        
+        // Daftar role yang boleh lihat dashboard admin
+        $internalRoles = ['superadmin', 'super admin', 'sda', 'upt'];
 
+        if (in_array($role, $internalRoles)) {
+            
             $rekapStatus  = [];
             $totalLaporan = 0;
-            $rekapTanggal = [];
             $dataTerbaru  = [];
-
+            
+            // 🔥 MODIFIKASI DISINI: Inisialisasi Titik Awal 0 (Anchor Point)
+            $chartLabels  = ['']; // Label kosong untuk start
+            $chartValues  = [0];  // Nilai 0 agar garis mulai dari bawah
+            
             try {
-                $url  = $baseUrl . '/api/dashboard';
-                $resp = Http::withToken($token)->acceptJson()->get($url);
+                // Panggil endpoint global (Backend otomatis filter berdasarkan token UPT/SDA/Admin)
+                $resp = Http::withToken($token)->acceptJson()->get($baseUrl . '/api/dashboard');
+                
+                if ($resp->ok()) {
+                    $json = $resp->json();
+                    $rekapStatus  = $json['rekap_status'] ?? [];
+                    $totalLaporan = (int) ($json['total'] ?? 0);
+                    $rekapTanggal = $json['rekap_tanggal'] ?? [];
+                    $dataTerbaru  = $json['data_terbaru'] ?? [];
 
-                if ($resp->status() === 401) {
-                    return redirect()->route('login')
-                        ->withErrors(['_global' => 'Token expired. Silakan login ulang.']);
+                    // Proses Chart dengan ANCHOR POINT
+                    if (is_array($rekapTanggal)) {
+                        usort($rekapTanggal, function ($a, $b) {
+                            return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
+                        });
+                        
+                        foreach ($rekapTanggal as $row) {
+                            $tglRaw = $row['tanggal'] ?? '';
+                            
+                            // Kita format tanggalnya biar cantik (misal: 18 Jan)
+                            // Kalau mau format asli (2025-01-18), pakai: $label = $tglRaw;
+                            $label = $tglRaw ? date('d M', strtotime($tglRaw)) : '';
+
+                            $chartLabels[] = $label;
+                            $chartValues[] = (int) ($row['total'] ?? 0);
+                        }
+                    }
                 }
-
-                if (!$resp->ok()) {
-                    return view('backend.dashboard.superadmin', [
-                        'user'         => $userArr,
-                        'rekapStatus'  => [],
-                        'totalLaporan' => 0,
-                        'dataTerbaru'  => [],
-                        'chartLabels'  => [],
-                        'chartValues'  => [],
-                        'apiError'     => $resp->json('message')
-                            ?? ('Gagal ambil dashboard superadmin (HTTP ' . $resp->status() . ')'),
-                    ]);
-                }
-
-                $json = $resp->json() ?? [];
-
-                $rekapStatus  = $json['rekap_status'] ?? [];
-                $totalLaporan = (int) ($json['total'] ?? 0);
-                $rekapTanggal = $json['rekap_tanggal'] ?? [];
-                $dataTerbaru  = $json['data_terbaru'] ?? $json['dataTerbaru'] ?? [];
-
             } catch (\Throwable $e) {
-                return view('backend.dashboard.superadmin', [
-                    'user'         => $userArr,
-                    'rekapStatus'  => [],
-                    'totalLaporan' => 0,
-                    'dataTerbaru'  => [],
-                    'chartLabels'  => [],
-                    'chartValues'  => [],
-                    'apiError'     => 'Tidak dapat menghubungi server backend.',
-                ]);
+                // Error handling sederhana agar halaman tidak crash
             }
 
-            // chart dari rekap_tanggal
-            $chartLabels = [];
-            $chartValues = [];
-
-            if (is_array($rekapTanggal)) {
-                usort($rekapTanggal, function ($a, $b) {
-                    return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
-                });
-
-                foreach ($rekapTanggal as $row) {
-                    $chartLabels[] = (string) ($row['tanggal'] ?? '');
-                    $chartValues[] = (int) ($row['total'] ?? 0);
-                }
-            }
-
+            // Arahkan UPT & SDA ke tampilan Superadmin
             return view('backend.dashboard.superadmin', [
                 'user'         => $userArr,
                 'rekapStatus'  => $rekapStatus,
@@ -223,16 +158,11 @@ class DashboardController extends Controller
             ]);
         }
 
-        // =========================================================
-        // DEFAULT (role lain: upt/sda/dll) -> sementara kosong dulu
-        // =========================================================
+        // ---------------------------------------------------------
+        // DEFAULT (Jika role tidak dikenal)
+        // ---------------------------------------------------------
         return view('backend.dashboard.index', [
-            'user'            => $userArr,
-            'rekapStatus'     => [],
-            'totalLaporan'    => 0,
-            'kecamatanCounts' => [],
-            'chartLabels'     => [],
-            'chartValues'     => [],
+            'user' => $userArr
         ]);
     }
 }
