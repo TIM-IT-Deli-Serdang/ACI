@@ -48,16 +48,15 @@ class RekapLaporanController extends Controller
 
         try {
             $response = Http::withToken($token)->get($baseUrl . $endpoint, $params);
-            
+
             if ($response->ok()) {
                 return response()->json($response->json());
             } else {
                 return response()->json([
-                    'status' => false, 
+                    'status' => false,
                     'message' => 'Gagal mengambil data dari server API.'
                 ], $response->status());
             }
-
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => 'Server Error.'], 500);
         }
@@ -101,7 +100,6 @@ class RekapLaporanController extends Controller
             } else {
                 return back()->with('error', 'Gagal generate PDF dari server API.');
             }
-
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan koneksi.');
         }

@@ -18,7 +18,7 @@
     </div>
 
     <div id="kt_app_content" class="app-content flex-column-fluid">
-        
+
         <div class="card border border-gray-300 mb-5">
             <div class="card-header border-0 pt-5">
                 <h3 class="card-title align-items-start flex-column">
@@ -31,7 +31,8 @@
                     <div class="row mb-5">
                         <div class="col-md-3 mb-3">
                             <label class="form-label fw-bold">Jenis Rekap</label>
-                            <select name="filter_type" id="filter_type" class="form-select" data-control="select2" data-hide-search="true">
+                            <select name="filter_type" id="filter_type" class="form-select" data-control="select2"
+                                data-hide-search="true">
                                 <option value="status">Berdasarkan Status</option>
                                 <option value="tanggal">Berdasarkan Tanggal</option>
                                 <option value="kecamatan">Berdasarkan Kecamatan</option>
@@ -40,9 +41,15 @@
 
                         <div class="col-md-3 mb-3 filter-input" id="input_status">
                             <label class="form-label fw-bold">Pilih Status</label>
-                            <select name="status_laporan" class="form-select" data-control="select2" data-placeholder="Semua Status">
+                            <select name="status_laporan" class="form-select" data-control="select2"
+                                data-placeholder="Semua Status">
                                 <option value="">Semua Status</option>
-                                <option value="0">Pengajuan</option>
+
+                                {{-- PERBAIKAN: Cek auth()->check() dulu untuk mencegah error --}}
+                                @if (auth()->check() && !auth()->user()->hasRole('upt'))
+                                    <option value="0">Pengajuan</option>
+                                @endif
+
                                 <option value="1">Diterima</option>
                                 <option value="2">Diverifikasi</option>
                                 <option value="3">Dalam Penanganan</option>
@@ -80,14 +87,19 @@
         </div>
 
         <div class="row g-5 g-xl-8 mb-5" id="stats-container">
-            <div class="col-xl-2 col-4">
-                <div class="card bg-secondary hoverable card-xl-stretch mb-xl-8">
-                    <div class="card-body my-3">
-                        <span class="d-block fw-bold fs-6 mb-2">Pengajuan</span>
-                        <div class="card-title fw-bold text-gray-800 fs-2 mb-0" id="stat_pengajuan">0</div>
+
+            {{-- PERBAIKAN: Cek auth()->check() dulu --}}
+            @if (auth()->check() && !auth()->user()->hasRole('upt'))
+                <div class="col-xl-2 col-4">
+                    <div class="card bg-secondary hoverable card-xl-stretch mb-xl-8">
+                        <div class="card-body my-3">
+                            <span class="d-block fw-bold fs-6 mb-2">Pengajuan</span>
+                            <div class="card-title fw-bold text-gray-800 fs-2 mb-0" id="stat_pengajuan">0</div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            @endif
+
             <div class="col-xl-2 col-4">
                 <div class="card bg-info hoverable card-xl-stretch mb-xl-8">
                     <div class="card-body my-3">
@@ -161,72 +173,92 @@
 
     @push('scripts')
         <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
-        
+
         <script>
             $(document).ready(function() {
-                // 1. Inisialisasi DataTable Client Side (karena API return data full)
                 var table = $('#rekap_table').DataTable({
                     language: {
                         emptyTable: "Silakan klik 'Tampilkan Data' untuk melihat hasil.",
                         zeroRecords: "Data tidak ditemukan"
                     },
-                    columns: [
-                        { data: null, render: (data, type, row, meta) => meta.row + 1 },
-                        // Mapping Kategori ID ke Text (Manual karena API rekap hanya return raw data model)
-                        { data: 'kategori_laporan_id', render: function(val) {
-                            const map = {1:'Jalan Rusak', 2:'Drainase', 3:'Banjir', 4:'Jembatan', 5:'Infrastruktur Lain'};
-                            return map[val] || 'Lainnya';
-                        }},
-                        { data: 'deskripsi' },
-                        { data: 'alamat' },
-                        { data: 'status_laporan', render: function(val) {
-                            const badges = {
-                                0: '<span class="badge badge-secondary">Pengajuan</span>',
-                                1: '<span class="badge badge-info">Diterima</span>',
-                                2: '<span class="badge badge-primary">Diverifikasi</span>',
-                                3: '<span class="badge badge-warning">Penanganan</span>',
-                                4: '<span class="badge badge-success">Selesai</span>',
-                                5: '<span class="badge badge-danger">Ditolak</span>'
-                            };
-                            return badges[val] || '-';
-                        }},
-                        { data: 'created_at', render: function(val) {
-                            return val ? new Date(val).toLocaleDateString('id-ID') : '-';
-                        }, className: "text-end" }
+                    columns: [{
+                            data: null,
+                            render: (data, type, row, meta) => meta.row + 1
+                        },
+                        {
+                            data: 'kategori_laporan_id',
+                            render: function(val) {
+                                const map = {
+                                    1: 'Jalan Rusak',
+                                    2: 'Drainase',
+                                    3: 'Banjir',
+                                    4: 'Jembatan',
+                                    5: 'Infrastruktur Lain'
+                                };
+                                return map[val] || 'Lainnya';
+                            }
+                        },
+                        {
+                            data: 'deskripsi'
+                        },
+                        {
+                            data: 'alamat'
+                        },
+                        {
+                            data: 'status_laporan',
+                            render: function(val) {
+                                const badges = {
+                                    0: '<span class="badge badge-secondary">Pengajuan</span>',
+                                    1: '<span class="badge badge-info">Diterima</span>',
+                                    2: '<span class="badge badge-primary">Diverifikasi</span>',
+                                    3: '<span class="badge badge-warning">Penanganan</span>',
+                                    4: '<span class="badge badge-success">Selesai</span>',
+                                    5: '<span class="badge badge-danger">Ditolak</span>'
+                                };
+                                return badges[val] || '-';
+                            }
+                        },
+                        {
+                            data: 'created_at',
+                            render: function(val) {
+                                return val ? new Date(val).toLocaleDateString('id-ID') : '-';
+                            },
+                            className: "text-end"
+                        }
                     ]
                 });
 
-                // 2. Logic Ganti Filter Type
                 $('#filter_type').on('change', function() {
                     var val = $(this).val();
-                    $('.filter-input').addClass('d-none'); // Hide all
+                    $('.filter-input').addClass('d-none');
 
-                    if(val === 'status') {
+                    if (val === 'status') {
                         $('#input_status').removeClass('d-none');
-                    } else if(val === 'tanggal') {
+                    } else if (val === 'tanggal') {
                         $('#input_tanggal_awal, #input_tanggal_akhir, #input_status').removeClass('d-none');
-                    } else if(val === 'kecamatan') {
+                    } else if (val === 'kecamatan') {
                         $('#input_kecamatan, #input_status').removeClass('d-none');
                     }
                 });
 
-                // 3. Button Filter Click (AJAX)
                 $('#btn_apply_filter').click(function() {
                     var formData = $('#filterForm').serialize();
                     var btn = $(this);
-                    
-                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Loading...');
+
+                    btn.prop('disabled', true).html(
+                        '<span class="spinner-border spinner-border-sm me-2"></span> Loading...');
 
                     $.ajax({
                         url: "{{ route('rekap.get-data') }}",
                         type: "GET",
                         data: formData,
                         success: function(res) {
-                            btn.prop('disabled', false).html('<i class="ki-outline ki-filter fs-2"></i> Tampilkan Data');
-                            
-                            if(res.status) {
-                                // A. Update Statistik Cards
+                            btn.prop('disabled', false).html(
+                                '<i class="ki-outline ki-filter fs-2"></i> Tampilkan Data');
+
+                            if (res.status) {
                                 var stats = res.rekap_status;
+
                                 $('#stat_pengajuan').text(stats.pengajuan || 0);
                                 $('#stat_diterima').text(stats.diterima || 0);
                                 $('#stat_diverifikasi').text(stats.diverifikasi || 0);
@@ -234,9 +266,8 @@
                                 $('#stat_selesai').text(stats.selesai || 0);
                                 $('#stat_ditolak').text(stats.ditolak || 0);
 
-                                // B. Update Table
                                 table.clear().rows.add(res.data).draw();
-                                
+
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Data Berhasil Dimuat',
@@ -247,16 +278,16 @@
                             }
                         },
                         error: function() {
-                            btn.prop('disabled', false).html('<i class="ki-outline ki-filter fs-2"></i> Tampilkan Data');
+                            btn.prop('disabled', false).html(
+                                '<i class="ki-outline ki-filter fs-2"></i> Tampilkan Data');
                             Swal.fire('Error', 'Gagal mengambil data rekap.', 'error');
                         }
                     });
                 });
 
-                // 4. Button Export PDF
                 $('#btn_export_pdf').click(function() {
-                    // Validasi kecamatan jika filter kecamatan dipilih
-                    if($('#filter_type').val() === 'kecamatan' && $('input[name="kecamatan_id"]').val() === '') {
+                    if ($('#filter_type').val() === 'kecamatan' && $('input[name="kecamatan_id"]').val() ===
+                        '') {
                         Swal.fire('Peringatan', 'Harap isi ID Kecamatan terlebih dahulu.', 'warning');
                         return;
                     }
