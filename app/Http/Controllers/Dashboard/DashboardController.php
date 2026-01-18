@@ -45,18 +45,19 @@ class DashboardController extends Controller
         $role = strtolower(trim((string) $role));
 
 
-        // ---------------------------------------------------------
+       // ---------------------------------------------------------
         // KONDISI 1: MASYARAKAT (Data Pribadi)
         // ---------------------------------------------------------
         if ($role === 'masyarakat') {
             $rekapStatus  = [];
             $totalLaporan = 0;
             $dataTerbaru  = [];
-            $chartLabels  = [];
-            $chartValues  = [];
+            
+            // 🔥 UPDATE: Tambahkan Titik Awal 0 agar grafik masyarakat juga miring naik
+            $chartLabels  = ['']; 
+            $chartValues  = [0];
 
             try {
-                // Endpoint khusus masyarakat
                 $resp = Http::withToken($token)->acceptJson()->get($baseUrl . '/api/dashboard/masyarakat');
                 
                 if ($resp->ok()) {
@@ -66,19 +67,23 @@ class DashboardController extends Controller
                     $rekapTanggal = $json['rekap_tanggal'] ?? [];
                     $dataTerbaru  = $json['data_terbaru'] ?? [];
 
-                    // Proses Chart
+                    // Proses Chart dengan ANCHOR POINT
                     if (is_array($rekapTanggal)) {
                         usort($rekapTanggal, function ($a, $b) {
                             return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
                         });
                         foreach ($rekapTanggal as $row) {
-                            $chartLabels[] = (string) ($row['tanggal'] ?? '');
+                            $tglRaw = $row['tanggal'] ?? '';
+                            // Format tanggal biar cantik (18 Jan) sama seperti admin
+                            $label = $tglRaw ? date('d M', strtotime($tglRaw)) : '';
+
+                            $chartLabels[] = $label;
                             $chartValues[] = (int) ($row['total'] ?? 0);
                         }
                     }
                 }
             } catch (\Throwable $e) {
-                // Silent fail / Kosongkan data
+                // Silent fail
             }
 
             return view('backend.dashboard.masyarakat', [
@@ -104,8 +109,10 @@ class DashboardController extends Controller
             $rekapStatus  = [];
             $totalLaporan = 0;
             $dataTerbaru  = [];
-            $chartLabels  = [];
-            $chartValues  = [];
+            
+            // 🔥 MODIFIKASI DISINI: Inisialisasi Titik Awal 0 (Anchor Point)
+            $chartLabels  = ['']; // Label kosong untuk start
+            $chartValues  = [0];  // Nilai 0 agar garis mulai dari bawah
             
             try {
                 // Panggil endpoint global (Backend otomatis filter berdasarkan token UPT/SDA/Admin)
@@ -118,13 +125,20 @@ class DashboardController extends Controller
                     $rekapTanggal = $json['rekap_tanggal'] ?? [];
                     $dataTerbaru  = $json['data_terbaru'] ?? [];
 
-                    // Proses Chart
+                    // Proses Chart dengan ANCHOR POINT
                     if (is_array($rekapTanggal)) {
                         usort($rekapTanggal, function ($a, $b) {
                             return strcmp((string)($a['tanggal'] ?? ''), (string)($b['tanggal'] ?? ''));
                         });
+                        
                         foreach ($rekapTanggal as $row) {
-                            $chartLabels[] = (string) ($row['tanggal'] ?? '');
+                            $tglRaw = $row['tanggal'] ?? '';
+                            
+                            // Kita format tanggalnya biar cantik (misal: 18 Jan)
+                            // Kalau mau format asli (2025-01-18), pakai: $label = $tglRaw;
+                            $label = $tglRaw ? date('d M', strtotime($tglRaw)) : '';
+
+                            $chartLabels[] = $label;
                             $chartValues[] = (int) ($row['total'] ?? 0);
                         }
                     }
@@ -133,7 +147,7 @@ class DashboardController extends Controller
                 // Error handling sederhana agar halaman tidak crash
             }
 
-            // Arahkan UPT & SDA ke tampilan Superadmin (karena layoutnya 100% sama)
+            // Arahkan UPT & SDA ke tampilan Superadmin
             return view('backend.dashboard.superadmin', [
                 'user'         => $userArr,
                 'rekapStatus'  => $rekapStatus,
