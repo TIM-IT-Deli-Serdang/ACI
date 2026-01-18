@@ -43,8 +43,8 @@
             <!--end::Page title-->
             <!--begin::Actions-->
             <div class="d-flex align-items-center pt-4 pb-7 pt-lg-1 pb-lg-2">
- <button type="button" id="btn_tambah_data" class="btn btn-sm btn-primary">
-                        <i class="ki-outline ki-plus fs-2"></i>Add</button>
+                <button type="button" id="btn_tambah_data" class="btn btn-sm btn-primary">
+                    <i class="ki-outline ki-plus fs-2"></i>Add</button>
 
             </div>
             <!--end::Actions-->
@@ -88,9 +88,10 @@
                     <thead>
                         <tr class=" text-muted fw-bold fs-7 text-uppercase gs-0">
 
-                           <th class="min-w-125px">Username</th>
-                           <th class="min-w-125px text-center">NIK</th>
-                           <th class="min-w-125px">UPT</th>
+                            <th class="min-w-125px">Username</th>
+                            <th class="min-w-125px text-center">NIK</th>
+                            <th class="min-w-125px text-center">No WA</th>
+                            <th class="min-w-125px">UPT</th>
                             <th class="min-w-100px">Role</th>
                             <th class="min-w-100px">Last login</th>
                             <th class="min-w-100px">Last IP Adress</th>
@@ -111,13 +112,13 @@
 
 
 
-<!--begin::Modal - Add-->
-<div class="modal fade" id="Modal_Tambah_Data" tabindex="-1" aria-hidden="true">
-    <!--begin::Modal dialog-->
-    <div class="modal-dialog modal-dialog-centered mw-750px">
-        <!--begin::Modal content-->
-        <div class="modal-content" id="tambah-modal-content">
-            <div class="modal-header align-items-center py-6 border-gray-300">
+    <!--begin::Modal - Add-->
+    <div class="modal fade" id="Modal_Tambah_Data" tabindex="-1" aria-hidden="true">
+        <!--begin::Modal dialog-->
+        <div class="modal-dialog modal-dialog-centered mw-750px">
+            <!--begin::Modal content-->
+            <div class="modal-content" id="tambah-modal-content">
+                <div class="modal-header align-items-center py-6 border-gray-300">
                     <h4 class="fw-bold">Add Data</h4>
                     <!--begin::Close-->
                     <div class="btn btn-icon btn-sm btn-active-icon-primary " data-bs-dismiss="modal">
@@ -125,125 +126,125 @@
                     </div>
                     <!--end::Close-->
                 </div>
-            <form method="post" id="FormTambahModalID" class="form" enctype="multipart/form-data">
-                @csrf
-                <!--begin::Modal body-->
-                <div class="modal-body px-2 my-2">
-                    <div class="d-flex flex-column scroll-y px-5 px-lg-10" id="kt_modal_add__scroll"
-                        data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-max-height="auto"
-                        data-kt-scroll-dependencies="#kt_modal_add_header"
-                        data-kt-scroll-wrappers="#kt_modal_add_scroll" data-kt-scroll-offset="300px">
+                <form method="post" id="FormTambahModalID" class="form" enctype="multipart/form-data">
+                    @csrf
+                    <!--begin::Modal body-->
+                    <div class="modal-body px-2 my-2">
+                        <div class="d-flex flex-column scroll-y px-5 px-lg-10" id="kt_modal_add__scroll"
+                            data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-max-height="auto"
+                            data-kt-scroll-dependencies="#kt_modal_add_header"
+                            data-kt-scroll-wrappers="#kt_modal_add_scroll" data-kt-scroll-offset="300px">
 
-                     
 
-                        <!-- Input group: Nama Brand -->
-                        <div class="fv-row mb-7">
-                            <label class="required fw-semibold fs-7 mb-2">Nama User</label>
-                            <input type="text" name="name" id="name" class="form-control mb-3 mb-lg-0"
-                                placeholder="Contoh: Kominfo" />
-                            <span class="text-danger error-text name_error_add"></span>
-                        </div>
-                        <div class="fv-row mb-7">
-                            <label class="required fw-semibold fs-7 mb-2">NIK</label>
-                            <input type="number" name="nik" class="form-control mb-3 mb-lg-0" placeholder="Contoh: 1207xxxx" />
-                            <span class="text-danger error-text nik_error_add"></span>
-                        </div>
-                        
-                        <div class="fv-row mb-7">
-                            <label class="required fw-semibold fs-7 mb-2">Unit UPT</label>
-                            <select id="upt_id_add" name="upt_id" class="form-select mb-3 mb-lg-0"
-                                    data-dropdown-parent="#Modal_Tambah_Data" 
-                                    data-control="select2" 
+
+                            <!-- Input group: Nama Brand -->
+                            <div class="fv-row mb-7">
+                                <label class="required fw-semibold fs-7 mb-2">Nama User</label>
+                                <input type="text" name="name" id="name" class="form-control mb-3 mb-lg-0"
+                                    placeholder="Contoh: Kominfo" />
+                                <span class="text-danger error-text name_error_add"></span>
+                            </div>
+                            <div class="fv-row mb-7">
+                                <label class="required fw-semibold fs-7 mb-2">NIK</label>
+                                <input type="number" name="nik" class="form-control mb-3 mb-lg-0"
+                                    placeholder="Contoh: 1207xxxx" />
+                                <span class="text-danger error-text nik_error_add"></span>
+                            </div>
+
+                            <div class="fv-row mb-7">
+                                <label class="required fw-semibold fs-7 mb-2">Unit UPT</label>
+                                <select id="upt_id_add" name="upt_id" class="form-select mb-3 mb-lg-0"
+                                    data-dropdown-parent="#Modal_Tambah_Data" data-control="select2"
                                     data-placeholder="Pilih UPT">
-                            </select>
-                            <span class="text-danger error-text upt_id_error_add"></span>
+                                </select>
+                                <span class="text-danger error-text upt_id_error_add"></span>
+                            </div>
+
+                            <div class="row">
+                                <!-- Input group: Nama Brand -->
+                                <div class="fv-row mb-7 col-6">
+                                    <label class="required fw-semibold fs-7 mb-2">Password</label>
+                                    <input type="text" name="password" id="password"
+                                        class="form-control mb-3 mb-lg-0" placeholder="Contoh: Jhon Hunter" />
+                                    <span class="text-danger error-text password_error_add"></span>
+                                </div>
+
+                                <!-- Input group: Nama Brand -->
+                                <div class="fv-row mb-7 col-6">
+                                    <label class="required fw-semibold fs-7 mb-2">Role</label>
+                                    <select id="roles" name="roles" class="form-select mb-3 mb-lg-0"
+                                        data-dropdown-parent="#Modal_Tambah_Data" data-dropdown-parent="body"
+                                        data-control="select2" data-placeholder="Pilih Role"></select>
+                                    <span class="text-danger error-text role_error_add"></span>
+
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Input group: Nama Brand -->
+                                <div class="fv-row mb-7 col-6">
+                                    <label class="required fw-semibold fs-7 mb-2">Email</label>
+                                    <input type="text" name="email" id="email"
+                                        class="form-control mb-3 mb-lg-0" placeholder="Contoh: Jhon Hunter" />
+                                    <span class="text-danger error-text email_error_add"></span>
+                                </div>
+
+                                <!-- Input group: Nama Brand -->
+                                <div class="fv-row mb-7 col-6">
+                                    <label class="required fw-semibold fs-7 mb-2">No. WhatsApp</label>
+                                    <input type="text" name="no_wa" id="no_wa"
+                                        class="form-control mb-3 mb-lg-0" placeholder="Contoh: 1234 xxxx 5678" />
+                                    <span class="text-danger error-text no_wa_error_add"></span>
+                                </div>
+                            </div>
+
+
+
                         </div>
+                    </div>
+                    <!--end::Modal body-->
 
-                        <div class="row">
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">Password</label>
-                                <input type="text" name="password" id="password" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: Jhon Hunter" />
-                                <span class="text-danger error-text password_error_add"></span>
-                            </div>
-
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">Role</label>
-                            <select id="roles" name="roles" class="form-select mb-3 mb-lg-0"
-                                    data-dropdown-parent="#Modal_Tambah_Data" data-dropdown-parent="body"
-                                    data-control="select2" data-placeholder="Pilih Role"></select>
-                            <span class="text-danger error-text role_error_add"></span>
-
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">Email</label>
-                                <input type="text" name="email" id="email" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: Jhon Hunter" />
-                                <span class="text-danger error-text email_error_add"></span>
-                            </div>
-
-                            <!-- Input group: Nama Brand -->
-                            <div class="fv-row mb-7 col-6">
-                                <label class="required fw-semibold fs-7 mb-2">No. WhatsApp</label>
-                                <input type="text" name="no_wa" id="no_wa" class="form-control mb-3 mb-lg-0"
-                                    placeholder="Contoh: 1234 xxxx 5678" />
-                                <span class="text-danger error-text no_wa_error_add"></span>
-                            </div>
-                        </div>
+                    <div class="modal-footer py-4">
+                        <button type="reset" class="btn btn-sm btn-secondary me-3" data-bs-dismiss="modal"
+                            onclick="resetForm()">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-primary" id="btn-add-data">
+                            <span class="indicator-label add-data-label">Simpan</span>
+                            <span class="indicator-progress add-data-progress" style="display: none;">
+                                Please Wait...
+                                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!--end::Modal content-->
+        </div>
+        <!--end::Modal dialog-->
+    </div>
+    <!--end::Modal - Add-->
 
 
-                      
+    <!-- Begin Modal Show -->
+    <div class="modal fade " id="Modal_Show_Data" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-750px">
+            <div class="modal-content" id="show-modal-content">
+                <div class="modal-header align-items-center py-6 border-gray-300">
+                    <h4 class="fw-bold m-0">Detail Data</h4>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <i class="ki-outline ki-cross fs-1 text-dark"></i>
                     </div>
                 </div>
-                <!--end::Modal body-->
 
-                <div class="modal-footer py-4">
-                    <button type="reset" class="btn btn-sm btn-secondary me-3" data-bs-dismiss="modal"
-                        onclick="resetForm()">Batal</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="btn-add-data">
-                        <span class="indicator-label add-data-label">Simpan</span>
-                        <span class="indicator-progress add-data-progress" style="display: none;">
-                            Please Wait...
-                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                        </span>
-                    </button>
-                </div>
-            </form>
-        </div>
-        <!--end::Modal content-->
-    </div>
-    <!--end::Modal dialog-->
-</div>
-<!--end::Modal - Add-->
-
-
-<!-- Begin Modal Show -->
-<div class="modal fade " id="Modal_Show_Data" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mw-750px">
-        <div class="modal-content" id="show-modal-content">
-            <div class="modal-header align-items-center py-6 border-gray-300">
-    <h4 class="fw-bold m-0">Detail Data</h4>
-    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
-        <i class="ki-outline ki-cross fs-1 text-dark"></i>
-    </div>
-</div>
-
-            <div class="modal-body" id="ShowRowModalBody">
-                <div class="text-center py-10">
-                    <div class="spinner-border text-primary"></div>
-                    <p class="mt-3">Loading...</p>
+                <div class="modal-body" id="ShowRowModalBody">
+                    <div class="text-center py-10">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-3">Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- End Modal Show -->
+    <!-- End Modal Show -->
 
 
 
@@ -263,8 +264,8 @@
                     <!--end::Close-->
                 </div>
                 <form id="FormEditModalID" class="form" enctype="multipart/form-data">
-                <div class="modal-body px-2 my-2">
-                    
+                    <div class="modal-body px-2 my-2">
+
                         @method('PUT')
                         @csrf
                         <!--begin::Scroll-->
@@ -275,20 +276,20 @@
                             <div id="EditRowModalBody"></div>
                             <input type="hidden" name="action" id="action" />
                         </div>
-                        
 
-                    
-                </div>
-                <div class="modal-footer py-4">
-                            <button type="button" class="btn btn-sm btn-secondary me-3"
-                                data-bs-dismiss="modal">Discard</button>
-                            <button type="submit" class="btn btn-sm btn-primary" id="btn-edit-data" value="submit">
-                                <span class="indicator-label edit-data-label">Submit</span>
-                                <span class="indicator-progress edit-data-progress" style="display: none;">Please Wait ...
-                                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
-                            </button>
-                        </div>
-                        </form>
+
+
+                    </div>
+                    <div class="modal-footer py-4">
+                        <button type="button" class="btn btn-sm btn-secondary me-3"
+                            data-bs-dismiss="modal">Discard</button>
+                        <button type="submit" class="btn btn-sm btn-primary" id="btn-edit-data" value="submit">
+                            <span class="indicator-label edit-data-label">Submit</span>
+                            <span class="indicator-progress edit-data-progress" style="display: none;">Please Wait ...
+                                <span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -302,7 +303,7 @@
 
     @push('scripts')
         <script src="{{ URL::to('assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
-        
+
         <script>
             // Fungsi Reset Form
             function resetForm() {
@@ -340,14 +341,51 @@
                         url: "{{ route('user.data') }}",
                         type: 'GET',
                     },
-                    columns: [
-                        { data: 'avatar', name: 'avatar', orderable: false, searchable: false },
-                        { data: 'nik', name: 'nik' },
-                        { data: 'upt.nama_upt', name: 'upt.nama_upt', orderable: false, searchable: false, defaultContent: '-' },
-                        { data: 'roles', name: 'roles', orderable: false, searchable: false },
-                        { data: 'last_login_at', name: 'last_login_at', orderable: false, searchable: false },
-                        { data: 'last_login_ip', name: 'last_login_ip', orderable: false, searchable: false },
-                        { data: 'joined_date', name: 'joined_date', orderable: false, searchable: false },
+                    columns: [{
+                            data: 'avatar',
+                            name: 'avatar',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'nik',
+                            name: 'nik'
+                        },
+                        {
+                            data: 'no_wa',
+                            name: 'no_wa'
+                        },
+                        {
+                            data: 'upt.nama_upt',
+                            name: 'upt.nama_upt',
+                            orderable: false,
+                            searchable: false,
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'roles',
+                            name: 'roles',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'last_login_at',
+                            name: 'last_login_at',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'last_login_ip',
+                            name: 'last_login_ip',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'joined_date',
+                            name: 'joined_date',
+                            orderable: false,
+                            searchable: false
+                        },
                         {
                             data: null,
                             name: 'action',
@@ -377,7 +415,7 @@
 
 
                 // ================== 2. INIT SELECT2 (ROLE & UPT) ==================
-                
+
                 // Select2 Role
                 $('#roles').select2({
                     dropdownParent: $("#Modal_Tambah_Data"),
@@ -407,7 +445,7 @@
                     width: '100%', // Penting agar tidak mengecil
                     placeholder: "Pilih UPT",
                     ajax: {
-                        url: "{{ route('user.select-upt') }}", 
+                        url: "{{ route('user.select-upt') }}",
                         dataType: 'json',
                         delay: 250,
                         processResults: function(data) {
@@ -439,7 +477,9 @@
                     $('#btn-add-data').prop('disabled', true);
 
                     $.ajaxSetup({
-                        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
                     });
 
                     $.ajax({
@@ -483,15 +523,28 @@
                                 $.each(res.errors, function(field, messages) {
                                     $("span." + field + "_error_add").text(messages[0]);
                                 });
-                                Swal.fire({ title: "Gagal", text: res.message, icon: "error", timer: 1800 });
+                                Swal.fire({
+                                    title: "Gagal",
+                                    text: res.message,
+                                    icon: "error",
+                                    timer: 1800
+                                });
                                 return;
                             }
                             if (xhr.status === 401) {
-                                Swal.fire({ title: "Unauthorized", text: res?.message, icon: "warning" });
+                                Swal.fire({
+                                    title: "Unauthorized",
+                                    text: res?.message,
+                                    icon: "warning"
+                                });
                                 return;
                             }
                             var message = (res && res.message) || "Terjadi kesalahan pada server.";
-                            Swal.fire({ title: "Error", text: message, icon: "error" });
+                            Swal.fire({
+                                title: "Error",
+                                text: message,
+                                icon: "error"
+                            });
                         }
                     });
                 });
@@ -518,11 +571,13 @@
                             if (result.html) {
                                 $("#ShowRowModalBody").html(result.html);
                             } else {
-                                $("#ShowRowModalBody").html('<p class="text-danger">Data tidak tersedia.</p>');
+                                $("#ShowRowModalBody").html(
+                                    '<p class="text-danger">Data tidak tersedia.</p>');
                             }
                         },
                         error: function(xhr) {
-                            $("#ShowRowModalBody").html('<p class="text-danger">Gagal memuat data.</p>');
+                            $("#ShowRowModalBody").html(
+                                '<p class="text-danger">Gagal memuat data.</p>');
                         }
                     });
                 });
@@ -538,7 +593,9 @@
                 $("body").on("click", ".btn-get-edit", function(e) {
                     e.preventDefault();
                     var id = $(this).data("id");
-                    $("#EditRowModalBody").html('<div class="text-center py-10"><div class="spinner-border text-primary"></div><p class="mt-3">Loading...</p></div>');
+                    $("#EditRowModalBody").html(
+                        '<div class="text-center py-10"><div class="spinner-border text-primary"></div><p class="mt-3">Loading...</p></div>'
+                    );
 
                     $.ajax({
                         url: "/user-management/user/" + id + "/edit",
@@ -547,7 +604,9 @@
                             if (result.html) {
                                 $("#EditRowModalBody").html(result.html);
                                 if (!$("#hidden_id").length) {
-                                    $("#FormEditModalID").append('<input type="hidden" id="hidden_id" name="id" value="'+id+'"/>');
+                                    $("#FormEditModalID").append(
+                                        '<input type="hidden" id="hidden_id" name="id" value="' +
+                                        id + '"/>');
                                 } else {
                                     $("#hidden_id").val(id);
                                 }
@@ -555,11 +614,13 @@
                                 var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
                                 bsModal.show();
                             } else {
-                                $("#EditRowModalBody").html('<p class="text-danger">Gagal memuat form edit.</p>');
+                                $("#EditRowModalBody").html(
+                                    '<p class="text-danger">Gagal memuat form edit.</p>');
                             }
                         },
                         error: function() {
-                            $("#EditRowModalBody").html('<p class="text-danger">Gagal memuat data edit.</p>');
+                            $("#EditRowModalBody").html(
+                                '<p class="text-danger">Gagal memuat data edit.</p>');
                         }
                     });
                 });
@@ -576,24 +637,43 @@
                     var id = $("#hidden_id").val() || formData.get('id');
                     formData.append('_method', 'PUT');
 
-                    $.ajaxSetup({ headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") } });
+                    $.ajaxSetup({
+                        headers: {
+                            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+                        }
+                    });
 
                     $.ajax({
                         url: "/user-management/user/" + id,
                         method: "POST",
                         data: formData,
-                        contentType: false, processData: false, cache: false, dataType: "json",
-                        beforeSend: function() { $(document).find("span.error-text").text(""); },
+                        contentType: false,
+                        processData: false,
+                        cache: false,
+                        dataType: "json",
+                        beforeSend: function() {
+                            $(document).find("span.error-text").text("");
+                        },
                         success: function(result) {
                             blockUIEdit.release();
                             if (result.errors) {
-                                $.each(result.errors, function(field, messages) { $("span." + field + "_error_edit").text(messages[0]); });
-                                Swal.fire({ title: "Error", text: result.message, icon: "error" });
+                                $.each(result.errors, function(field, messages) {
+                                    $("span." + field + "_error_edit").text(messages[0]);
+                                });
+                                Swal.fire({
+                                    title: "Error",
+                                    text: result.message,
+                                    icon: "error"
+                                });
                             } else {
                                 var modalEl = document.getElementById('Modal_Edit_Data');
                                 bootstrap.Modal.getInstance(modalEl)?.hide();
                                 $(".chimox").DataTable().ajax.reload();
-                                Swal.fire({ text: "Berhasil diupdate.", icon: "success", timer: 1500 });
+                                Swal.fire({
+                                    text: "Berhasil diupdate.",
+                                    icon: "success",
+                                    timer: 1500
+                                });
                             }
                             $('#btn-edit-data .edit-data-label').show();
                             $('#btn-edit-data .edit-data-progress').hide();
@@ -605,10 +685,20 @@
                             $('#btn-edit-data .edit-data-progress').hide();
                             $('#btn-edit-data').prop('disabled', false);
                             if (xhr.status === 422 && xhr.responseJSON.errors) {
-                                $.each(xhr.responseJSON.errors, function(field, messages) { $("span." + field + "_error_edit").text(messages[0]); });
-                                Swal.fire({ title: "Error", text: xhr.responseJSON.message, icon: "error" });
+                                $.each(xhr.responseJSON.errors, function(field, messages) {
+                                    $("span." + field + "_error_edit").text(messages[0]);
+                                });
+                                Swal.fire({
+                                    title: "Error",
+                                    text: xhr.responseJSON.message,
+                                    icon: "error"
+                                });
                             } else {
-                                Swal.fire({ title: "Error", text: "Terjadi kesalahan server.", icon: "error" });
+                                Swal.fire({
+                                    title: "Error",
+                                    text: "Terjadi kesalahan server.",
+                                    icon: "error"
+                                });
                             }
                         }
                     });
@@ -629,18 +719,33 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+                            $.ajaxSetup({
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                }
+                            });
                             $.ajax({
                                 url: "/user-management/user/" + id,
                                 method: "POST",
-                                data: { _method: "DELETE" },
+                                data: {
+                                    _method: "DELETE"
+                                },
                                 dataType: "json",
                                 success: function(res) {
                                     $(".chimox").DataTable().ajax.reload();
-                                    Swal.fire({ title: "Terhapus", text: "Data berhasil dihapus.", icon: "success", timer: 1500 });
+                                    Swal.fire({
+                                        title: "Terhapus",
+                                        text: "Data berhasil dihapus.",
+                                        icon: "success",
+                                        timer: 1500
+                                    });
                                 },
                                 error: function() {
-                                    Swal.fire({ title: "Error", text: "Terjadi kesalahan pada server.", icon: "error" });
+                                    Swal.fire({
+                                        title: "Error",
+                                        text: "Terjadi kesalahan pada server.",
+                                        icon: "error"
+                                    });
                                 }
                             });
                         }
@@ -650,17 +755,22 @@
             }); // END DOCUMENT READY
         </script>
 
-        <script>    
+        <script>
             var elements = document.querySelectorAll('.modal');
             elements.forEach(function(element) {
                 dragElement(element);
+
                 function dragElement(elmnt) {
-                    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                    var pos1 = 0,
+                        pos2 = 0,
+                        pos3 = 0,
+                        pos4 = 0;
                     if (elmnt.querySelector('.modal-header')) {
                         elmnt.querySelector('.modal-header').onmousedown = dragMouseDown;
                     } else {
                         elmnt.onmousedown = dragMouseDown;
                     }
+
                     function dragMouseDown(e) {
                         e = e || window.event;
                         pos3 = e.clientX;
@@ -668,6 +778,7 @@
                         document.onmouseup = closeDragElement;
                         document.onmousemove = elementDrag;
                     }
+
                     function elementDrag(e) {
                         e = e || window.event;
                         pos1 = pos3 - e.clientX;
@@ -677,6 +788,7 @@
                         elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
                         elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
                     }
+
                     function closeDragElement() {
                         document.onmouseup = null;
                         document.onmousemove = null;

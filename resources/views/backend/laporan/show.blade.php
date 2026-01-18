@@ -34,6 +34,14 @@
                     <label class="fw-semibold fs-7 mb-2 text-muted">Alamat Lokasi</label>
                     <div class="fw-bold fs-6 text-gray-800">{{ $data['alamat'] ?? '-' }}</div>
                 </div>
+                <div class="fv-row mb-7">
+                    <label class="fw-semibold fs-7 mb-2 text-muted">Kecamatan</label>
+                    <div class="fw-bold fs-6 text-gray-800">{{ $data['kecamatan']['nama'] ?? '-' }}</div>
+                </div>
+                <div class="fv-row mb-7">
+                    <label class="fw-semibold fs-7 mb-2 text-muted">Kelurahan</label>
+                    <div class="fw-bold fs-6 text-gray-800">{{ $data['kelurahan']['nama'] ?? '-' }}</div>
+                </div>
 
                 <div class="row">
                     <div class="col-6 mb-7">
