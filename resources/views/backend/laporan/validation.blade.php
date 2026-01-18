@@ -35,6 +35,8 @@
                             @php
                                 $fotoUrl = $data['file_masyarakat']
                                     ? 'https://apiaci-deliserdangsehat.deliserdangkab.go.id/storage/laporan/masyarakat/' .
+                                        $data['id'] .
+                                        '/' .
                                         $data['file_masyarakat']
                                     : null;
                             @endphp
@@ -88,6 +90,20 @@
                                         <td class="text-muted">Tanggal Lapor</td>
                                         <td class="text-gray-800">
                                             {{ \Carbon\Carbon::parse($data['created_at'])->translatedFormat('d F Y, H:i') }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Kecamatan</td>
+                                        <td class="text-gray-800">
+                                            {{ $data['kecamatan']['nama'] ?? '-' }} - ID: Kecamatan(
+                                            {{ $data['kecamatan']['id'] ?? '-' }})
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Kelurahan</td>
+                                        <td class="text-gray-800">
+                                            {{ $data['kelurahan']['nama'] ?? '-' }} - ID: Kelurahan(
+                                            {{ $data['kelurahan']['id'] ?? '-' }})
                                         </td>
                                     </tr>
                                     <tr>
