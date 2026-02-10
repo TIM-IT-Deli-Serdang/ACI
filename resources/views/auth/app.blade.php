@@ -17,19 +17,16 @@ License: For each use you must have a valid license purchased only from above li
 
     <title>@yield('title')</title>
     <meta charset="utf-8" />
-    <meta name="description"
-        content="
+    <meta name="description" content="
           Aplikasi ACI - Aksi Cepat Infrastruktur
         " />
-    <meta name="keywords"
-        content="
+    <meta name="keywords" content="
             aci, jalan, infrastruktur, laporan, deli serdang
         " />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
-    <meta property="og:title"
-        content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
+    <meta property="og:title" content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
     <meta property="og:url" content="#" />
     <meta property="og:site_name" content="Aplikasi ACI - Aksi Cepat Infrastruktur" />
     <link rel="canonical" href="#" />
@@ -100,14 +97,17 @@ License: For each use you must have a valid license purchased only from above li
                     <img class="theme-dark-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20"
                         src="{{ asset('assets/media/logos/logo-aci.png') }}" alt="" />
                     <!--end::Image-->
-                    <h1 class="text-gray-800 fs-2qx fw-bold text-center mb-7">Aksi Cepat Infrastruktur</h1>
-                    <div class="text-gray-600 fs-base text-center fw-semibold">
+                    <h1 class="text-black fs-2qx fw-bold text-center mb-7">Aksi Cepat Infrastruktur</h1>
+
+                    <div class="text-black fs-base text-center fw-semibold">
                         Mewujudkan percepatan pembangunan di
-                        <a href="#" class="opacity-75-hover text-primary me-1">Kabupaten Deli Serdang</a>
+                        <a href="https://deliserdangkab.go.id/"
+                            class="opacity-75-hover text-black fw-bold me-1">Kabupaten Deli
+                            Serdang</a>
                         melalui sistem kerja yang terintegrasi dan dinamis.
                         <br />
                         Kami berkomitmen menghadirkan solusi infrastruktur yang
-                        <a href="#" class="opacity-75-hover text-primary me-1">cepat, tepat,</a>
+                        <span class="text-black fw-bold me-1">cepat, tepat,</span>
                         dan berorientasi pada kemajuan nyata.
                     </div>
                 </div>
