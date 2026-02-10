@@ -45,17 +45,17 @@
     </div>
     <!--end::Toolbar-->
 
-  @php
-    $user = session('user') ?? $user ?? null;
-    $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
-    $rawAvatar = $user['avatar_url'] ?? null;
-    $avatarUrl = null;
-    if (!empty($rawAvatar)) {
-        $avatarUrl = preg_replace('#^https?://[^/]+#i', $baseUrl, $rawAvatar);
-    } elseif (!empty($user['avatar'])) {
-        $avatarUrl = $baseUrl . '/storage/user/avatar/' . $user['avatar'];
-    }
-@endphp
+    @php
+        $user = session('user') ?? ($user ?? null);
+        $baseUrl = rtrim(env('API_BASE_URL', ''), '/');
+        $rawAvatar = $user['avatar_url'] ?? null;
+        $avatarUrl = null;
+        if (!empty($rawAvatar)) {
+            $avatarUrl = preg_replace('#^https?://[^/]+#i', $baseUrl, $rawAvatar);
+        } elseif (!empty($user['avatar'])) {
+            $avatarUrl = $baseUrl . '/storage/user/avatar/' . $user['avatar'];
+        }
+    @endphp
 
     <!--begin::Content-->
     <div id="kt_app_content" class="app-content flex-column-fluid">
@@ -102,26 +102,48 @@
                                 <!--end::Name-->
                                 <!--begin::Info-->
                                 <div class="d-flex flex-wrap fw-semibold fs-6 mb-4 pe-2">
+                                    {{-- BAGIAN ROLE --}}
                                     <a class="d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2">
                                         <i class="ki-outline ki-security-user fs-4 me-1"></i>
-                                       {{ $user['roles']['name'] ?? 'No Role' }}
+                                        @php
+                                            // Ambil array roles, jika kosong set array kosong
+                                            $roles = $user['roles'] ?? [];
+
+                                            // Ambil semua 'name' dari dalam array roles
+                                            $roleNames = array_column($roles, 'name');
+
+                                            // Gabungkan dengan koma jika lebih dari 1, atau set default 'No Role'
+                                            $displayRole =
+                                                count($roleNames) > 0 ? implode(', ', $roleNames) : 'No Role';
+                                        @endphp
+
+                                        {{-- Tampilkan dengan huruf kapital di awal (ucwords) --}}
+                                        {{ ucwords($displayRole) }}
                                     </a>
 
+                                    {{-- BAGIAN WHATSAPP --}}
                                     <a
                                         class="d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2 account-no_wa">
-                                        <i class="ki-outline ki-whatsapp fs-4 me-1"></i>{{ $user['no_wa'] }}</a>
+                                        <i class="ki-outline ki-whatsapp fs-4 me-1"></i>
+                                        {{ $user['no_wa'] ?? '-' }}
+                                    </a>
+
+                                    {{-- BAGIAN EMAIL --}}
                                     <a
                                         class="d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2 account-email">
-                                        <i class="ki-outline ki-sms fs-4 me-1"></i>{{ $user['email'] }}</a>
+                                        <i class="ki-outline ki-sms fs-4 me-1"></i>
+                                        {{ $user['email'] ?? '-' }}
+                                    </a>
                                 </div>
                                 <!--end::Info-->
                             </div>
                             <!--end::User-->
                             <!--begin::Actions-->
                             <div class="d-flex my-4">
-                              
 
-                                    <a href="#" class="btn btn-sm btn-primary me-3" id="EditAvatar" data-id="{{ $user['id'] }}">Change Avatar</a>
+
+                                <a href="#" class="btn btn-sm btn-primary me-3" id="EditAvatar"
+                                    data-id="{{ $user['id'] }}">Change Avatar</a>
 
 
                             </div>
@@ -144,19 +166,19 @@
                     <!--begin::Nav item-->
                     <li class="nav-item mt-2">
                         <a class="nav-link text-active-primary ms-0 me-10 py-5 {{ request()->routeIs('my-security.index') ? 'active ' : '' }}"
-                            href="{{route('my-security.index')}}">Security</a>
+                            href="{{ route('my-security.index') }}">Security</a>
                     </li>
                     <!--end::Nav item-->
                     <!--begin::Nav item-->
                     <li class="nav-item mt-2">
                         <a class="nav-link text-active-primary ms-0 me-10 py-5 {{ request()->routeIs('my-activity.index') ? 'active ' : '' }}"
-                            href="{{route('my-activity.index')}}">Activity</a>
+                            href="{{ route('my-activity.index') }}">Activity</a>
                     </li>
                     <!--end::Nav item-->
                     <!--begin::Nav item-->
                     <li class="nav-item mt-2">
                         <a class="nav-link text-active-primary ms-0 me-10 py-5 {{ request()->routeIs('my-login-session.index') ? 'active ' : '' }}"
-                            href="{{route('my-login-session.index')}}">Logs</a>
+                            href="{{ route('my-login-session.index') }}">Logs</a>
                     </li>
                     <!--end::Nav item-->
                 </ul>
